@@ -23,8 +23,29 @@
     var factorycost = 30;
     var turretcost = 50;
     
-    var gold = 100;
-    var goldprod = 0;
+    function winfunction()
+        {
+        this.state = 0;
+        }
+    winfunction.prototype.act = function ()
+        {
+        //console.log("win!");
+        this.state += 0.2;
+        drawarea.font = "bold 120px sans-serif";
+        drawarea.textAlign = "center";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle="#FFF";
+        
+        drawarea.translate(Math.round(context.width/2), Math.round(context.height/2));
+        drawarea.rotate(Math.cos(this.state)/5);
+        drawarea.fillText("YOU WIN", 0, 0);
+        drawarea.resetTransform();
+        }
+    var winfunc = new winfunction();
+    
+    
+    var gold = 120;
+    var winflag = false;
     
     var turretbutton = {};
     turretbutton.x = margin;
@@ -143,6 +164,7 @@
     var shipt = new ship(2,3);
     function getNearEnemy(x,y,radius)
         {
+        if (winflag) { return; }
         if ((x-shipt.x)*(x-shipt.x)+(y-shipt.y)*(y-shipt.y) < radius*radius) { return shipt; }
         return undefined;
         }
@@ -301,18 +323,26 @@
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
 
+        if(winflag)
+            {
+            winfunc.act(); 
+            return;
+            }
         shipt.draw(drawarea);
         }
     function GameUpdate()
         {
+        var winner = true;
         for(var x = 0; x < field.size; x++)
         for(var y = 0; y < field.size; y++)
             {
             var curritem = field.getItem(x,y);
-            if(curritem === undefined) { continue; }
+            if(curritem === undefined) { winner = false; continue; }
             if(!curritem.isalive) { curritem.destroy(); field.setItem(x,y, undefined); }
             else { curritem.act(); }
             }
+        if(winner) { winflag = true; }
+        if(winflag) { return; }
         shipt.act();
         if (!shipt.isalive) { shipt = new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)); }
         }
