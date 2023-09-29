@@ -970,6 +970,27 @@ body
         clicked = true;
         //ReDraw();
         }
+    function GameWheel(event)
+        {
+        var direction = ((event.wheelDelta) ? event.wheelDelta/120 : event.detail/-3) || false;
+        //console.log("wheel direction:"+direction);
+        var active = 0;
+        switch(buildmode)
+            {
+            case "turret":  active = 0; break;
+            case "factory": active = 1; break;
+            case "wall":    active = 2; break;
+            case "sell":    active = 3; break;
+            default: console.log("Wheel:undefined active button"); break;
+            }
+        var bnum = active+direction;
+        if(bnum == -1) { bnum = 3; }
+        if(bnum == 4)  { bnum = 0; }
+        buttons[bnum].click();
+        }
+    if (window.addEventListener) window.addEventListener("DOMMouseScroll", GameWheel, false);
+    window.onmousewheel = document.onmousewheel = GameWheel;
+
     context.onmousemove=function(e) { mx = e.pageX-context.offsetLeft; my = e.pageY-context.offsetTop; mousemoved = true; }
     context.onmousedown=GameClick;
     (function() {
