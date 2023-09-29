@@ -292,7 +292,7 @@ body
         for (var x = 0; x < field.size; x++)
         for (var y = 0; y < field.size; y++)
             {
-            if (field.getItem(x,y) != undefined) { continue; }
+            //if (field.getItem(x,y) != undefined) { continue; }
             var valuable = field.getRes(x,y).concentration;
             if(valuable < 7) { drawarea.fillStyle="#FE7276"; }
             if(valuable >= 7 && valuable < 10) { drawarea.fillStyle="#FFE673"; }
