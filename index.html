@@ -13,8 +13,8 @@
     var drawarea = context.getContext('2d');
     var drill = new Image();
     drill.src = "building229.png";
-    var turret = new Image();
-    turret.src = "turret.png";
+    var turret1 = new Image();
+    turret1.src = "turret.png";
     var ship1 = new Image();
     ship1.src = "ship1.png";
     
@@ -28,7 +28,7 @@
     turretbutton.x = margin;
     turretbutton.y = margin+40;
     turretbutton.wh_size = 32;
-    turretbutton.img = turret;
+    turretbutton.img = turret1;
     turretbutton.click = function() { buildmode = "turret"; }
     var factorybutton = {};
     factorybutton.x = margin;
@@ -38,6 +38,7 @@
     factorybutton.click = function() { buildmode = "factory"; }
     var buttons = [turretbutton, factorybutton];
     
+
     
     var field = {};
     field.size = 10;
@@ -48,28 +49,25 @@
     field.y_up   = context.height - field.wh_size - margin;
     field.x_left = Math.round(context.width/2 - field.wh_size/2);
     field.step = field.wh_size/field.size;
-    field.click = function(x,y)
+    
+    function getNearBuilding(x,y,radius)
         {
-        var relx = (x-this.x_left)/this.wh_size*this.size;
-        var rely = (y-this.y_up)/this.wh_size*this.size;
-        if (relx > 0 && rely > 0 && relx < this.size && rely < this.size)
+        var near_rad = Infinity;
+        var near_obj = undefined;
+        for (var px = 0; px < field.size; px++)
+        for (var py = 0; py < field.size; py++)
             {
-            if (this.getItem(Math.floor(relx), Math.floor(rely)) != undefined) { return; }
-            if (buildmode == "factory")
-                {
-                if (gold < 30) { return; }
-                this.setItem(Math.floor(relx), Math.floor(rely), "factory");
-                gold -= 30;
-                goldprod += 0.05;
-                }
-            if (buildmode == "turret")
-                {
-                if (gold < 50) { return; }
-                this.setItem(Math.floor(relx), Math.floor(rely), "turret");
-                gold -= 50;
-                }
+            var currbuild = field.getItem(px,py);
+            if (currbuild == undefined) { continue; }
+            var bx = currbuild.x;
+            var by = currbuild.y;
+            var curr_rad = Math.sqrt((bx-x)*(bx-x)+(by-y)*(by-y));
+            if (curr_rad < near_rad) { near_rad = curr_rad; near_obj = currbuild; }
             }
+        if (near_rad <= radius) { return near_obj; }
+        return undefined;
         }
+    
     function ship(px, py)
         {
         this.sx = Math.round(field.x_left+field.step*(field.size+px));
@@ -81,12 +79,24 @@
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.act = this.waitattack;
+        this.isalive = true;
+        this.shootstate = 0;
         }
     ship.prototype.attack = function()
         {
         this.attackTime++;
         this.x -= 1;
-        if(this.attackTime > 200)
+        var build = getNearBuilding(this.x, this.y, 80);
+        if (build != undefined)
+            {
+            if(this.shootstate == 0)
+                {
+                build.hit(30);
+                this.shootstate = 25;
+                }
+            }
+        if(this.shootstate > 0) { this.shootstate--; }
+        if(this.x <= field.x_left)
             {
             this.attackTime = 0;
             this.act = this.goback;
@@ -107,6 +117,15 @@
             this.act = this.attack;
             }
         }
+    ship.prototype.death = function()
+        {
+        // TODO
+        }
+    ship.prototype.hit = function(damage)
+        {
+        this.hp-=damage;
+        if (this.hp<=0) { this.hp = 0; this.isalive = false; this.act = this.death; }
+        }
     ship.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
@@ -114,7 +133,95 @@
         area.drawImage(ship1, this.x, this.y, field.step, field.step);
         }
     var shipt = new ship(2,3);
+    function getNearEnemy(x,y,radius)
+        {
+        if ((x-shipt.x)*(x-shipt.x)+(y-shipt.y)*(y-shipt.y) < radius*radius) { return shipt; }
+        return undefined;
+        }
     
+    function factory(px, py)
+        {
+        this.x = Math.round(field.x_left+px*field.step);
+        this.y = Math.round(field.y_up  +py*field.step);
+        this.maxhp = 100;
+        this.hp = this.maxhp;
+        this.isalive = true;
+        }
+    factory.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.drawImage(drill, this.x, this.y, field.step, field.step);
+        }
+    factory.prototype.hit = function(damage)
+        {
+        this.hp-=damage;
+        if (this.hp<=0) { this.hp = 0; this.isalive = false; }
+        }
+    factory.prototype.act = function()
+        {
+        gold+=0.05;
+        }
+    function turret(px, py)
+        {
+        this.x = Math.round(field.x_left+px*field.step);
+        this.y = Math.round(field.y_up  +py*field.step);
+        this.maxhp = 100;
+        this.hp = this.maxhp;
+        this.angle = 0;
+        this.shootstate = 0;
+        this.isalive = true;
+        }
+    turret.prototype.hit = function(damage)
+        {
+        this.hp-=damage;
+        if (this.hp<=0) { this.hp = 0; this.isalive = false; }
+        }
+    turret.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.translate(Math.round(this.x+field.step/2), Math.round(this.y+field.step/2));
+        area.rotate(this.angle);
+        area.drawImage(turret1, -Math.round(field.step/2), -Math.round(field.step/2), field.step, field.step);
+        area.resetTransform();
+        }
+    turret.prototype.act = function()
+        {
+        if(this.angle > Math.PI)  { this.angle-=2*Math.PI; }
+        if(this.angle < -Math.PI) { this.angle+=2*Math.PI; }
+        var enemy = getNearEnemy(this.x, this.y, 100)
+        if(enemy == undefined) { this.angle+=0.1; return; }
+        
+        var eangle = Math.atan2(enemy.y-this.y, enemy.x-this.x);
+        var isscope = true;
+        if(eangle - this.angle >  0.3) { this.angle+=0.1; isscope = false; }
+        if(eangle - this.angle < -0.3) { this.angle-=0.1; isscope = false; }
+        if (this.shootstate == 0) { if(isscope) { enemy.hit(10); this.shootstate=20; } }
+        else { if(this.shootstate > 0) { this.shootstate--; } }
+        }
+    field.click = function(x,y)
+        {
+        var relx = Math.floor((x-this.x_left)/this.wh_size*this.size);
+        var rely = Math.floor((y-this.y_up)/this.wh_size*this.size);
+        if (relx >= 0 && rely >= 0 && relx < this.size && rely < this.size)
+            {
+            if (this.getItem(relx, rely) != undefined) { return; }
+            if (buildmode == "factory")
+                {
+                if (gold < 30) { return; }
+                this.setItem(relx, rely, new factory(relx, rely));
+                gold -= 30;
+                }
+            if (buildmode == "turret")
+                {
+                if (gold < 50) { return; }
+                this.setItem(relx, rely, new turret(relx, rely));
+                gold -= 50;
+                }
+            }
+        }
+
     console.log(field.items);
 
     console.log('canvas='+drawarea);
@@ -140,14 +247,8 @@
         for(var x = 0; x < this.size; x++)
         for(var y = 0; y < this.size; y++)
             {
-            if(this.getItem(x,y) === "factory")
-                {
-                drawarea.drawImage(drill, this.x_left+x*step, this.y_up+y*step, step, step);
-                }
-            if(this.getItem(x,y) === "turret")
-                {
-                drawarea.drawImage(turret, this.x_left+x*step, this.y_up+y*step, step, step);
-                }
+            if(this.getItem(x,y) === undefined) { continue; }
+            this.getItem(x,y).draw(drawarea);
             }
         }
 
@@ -176,8 +277,16 @@
         }
     function GameUpdate()
         {
-        gold += goldprod;
+        for(var x = 0; x < field.size; x++)
+        for(var y = 0; y < field.size; y++)
+            {
+            var curritem = field.getItem(x,y);
+            if(curritem === undefined) { continue; }
+            if(!curritem.isalive) { field.setItem(x,y, undefined); }
+            else { curritem.act(); }
+            }
         shipt.act();
+        if (!shipt.isalive) { shipt = new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)); }
         }
     function GameLoop()
         {
