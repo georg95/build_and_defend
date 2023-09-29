@@ -6,7 +6,7 @@
 </head>
 <body>
 
-<canvas height='400' width='800' id='game'>Bad browser</canvas>
+<canvas height='450' width='800' id='game'>Bad browser</canvas>
 
 <script>
     'use strict'
@@ -31,13 +31,14 @@
     var mx = 0;
     var my = 0;
     var clicked = false;
+    var mousemoved = false;
     var field = {};
     
     var buildmode = "factory";
-    var margin = 20;
+    var margin = 40;
     var factorycost = 30;
     var turretcost = 50;
-    var scannercost = 200;
+    var scannercost = 100;
     var scannerlvl = 0;
     
     
@@ -87,6 +88,27 @@
         act: function() { if(this.time <= 0) { this.alive=false; return; } this.time--; },
         draw: function(area) { ; }
         };
+    var effectFlowText = Object.create(effect);
+    effectFlowText.constructor = function(t, text, style, color, sx, sy, dy)
+        {
+        effect.constructor.apply(this, arguments);
+        this.text = text;
+        this.style = style;
+        this.color = color;
+        this.sx = sx;
+        this.sy = sy;
+        this.dy = dy;
+        return this;
+        }
+    effectFlowText.draw = function(area)
+        {
+        area.font = this.style;
+        area.fillStyle = "rgba("+this.color+","+this.time/this.alltime+")";
+        area.textAlign = "center";
+        area.textBaseline = "bottom";
+        area.fillText(this.text, this.sx,
+                      this.sy+this.dy-this.dy*this.time/this.alltime)
+        }
     var effectLaser = Object.create(effect);
     effectLaser.constructor = function(t, sx, sy, fx, fy)
         {
@@ -370,7 +392,8 @@
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.isalive = true;
-        this.production = field.getRes(px,py).concentration/100;
+        this.production = field.getRes(px,py).concentration;
+        this.prodStage = 0;
         factorycost+=5;
         }
     factory.prototype.destroy = function()
@@ -391,7 +414,15 @@
         }
     factory.prototype.act = function()
         {
-        gold+=this.production;
+        this.prodStage++;
+        if(this.prodStage >= 100)
+            {
+            gold+=this.production;
+            addEffect(Object.create(effectFlowText).constructor(
+                20, "$"+this.production, "bold 12px Arial", "255,255,0",
+                this.x+field.step/2, this.y, -field.step/2));
+            this.prodStage = 0;
+            }
         }
     function turret(px, py)
         {
@@ -497,17 +528,89 @@
             this.getItem(x,y).draw(drawarea);
             }
         }
-
-
-    function ReDraw()
+    var ReDraw;
+    var Update;
+    var menuButton = function(pos, text, clickcallback)
         {
-        drawarea.font = "bold 24px courier";
-        drawarea.textAlign = "left";
-        drawarea.textBaseline = "top";
+        this.clickcallback = clickcallback;
+        this.position = pos;
+        this.text = text;
+        this.alpha = 1;
+        this.animalpha = Math.PI;
+        this.ishover = false;
+        this.height = 36;
+        drawarea.font = "bold "+this.height+"px Arial";
+        this.width  = drawarea.measureText(text).width;
+        this.centery = context.height/10+this.position*(this.height*1.5);
+        }
+    menuButton.prototype.update = function()
+        {
+        if (this.ishover) { this.alpha = 0.75+Math.cos(this.animalpha)/4; this.animalpha+=0.3; }
+        }
+    menuButton.prototype.hover = function(x,y)
+        {
+        if(y > this.centery-this.height/2 &&
+           y < this.centery+this.height/2 &&
+           x > context.width/2-this.width/2 &&
+           x < context.width/2+this.width/2)
+            { this.ishover = true;  }
+        else { this.ishover = false; this.animalpha = Math.PI; this.alpha = 1; }
+        }
+    menuButton.prototype.click = function(x,y)
+        {
+        console.log("buttonclick1");
+        if(y > this.centery-this.height/2 &&
+           y < this.centery+this.height/2 &&
+           x > context.width/2-this.width/2 &&
+           x < context.width/2+this.width/2)
+            {
+            console.log("buttonclick2");
+            this.clickcallback();
+            return true;
+            }
+        return false;
+        }
+    menuButton.prototype.draw = function(area)
+        {
+        area.font = "bold "+this.height+"px Arial";
+        area.textAlign = "center";
+        area.textBaseline = "middle";
+        area.fillStyle = "rgba(200,200,200,"+this.alpha+")";
+        area.fillText(this.text, context.width/2, this.centery);
+        }
+    var menubuttons=[];
+    menubuttons[0] = new menuButton(2, "PLAY", function() {ReDraw = GameDraw; Update=GameUpdate;});
+    menubuttons[1] = new menuButton(3, "HELP", function() {;});
+    menubuttons[2] = new menuButton(4, "ABOUT", function() {;});
+    
+    ReDraw = function MenuDraw()
+        {
+        drawarea.fillStyle="#334";
+        drawarea.fillRect(0,0, context.width, context.height);
+        for(var i = 0; i < menubuttons.length; i++)
+            {
+            menubuttons[i].draw(drawarea);
+            }
+        }
+    Update = function MenuUpdate()
+        {
+        for(var i = 0; i < menubuttons.length; i++)
+            {
+            menubuttons[i].update();
+            if(mousemoved) { menubuttons[i].hover(mx, my); }
+            if(clicked)    { if(menubuttons[i].click(mx, my)) { clicked=false; } }
+            }
+        }
+    function GameDraw()
+        {
         drawarea.fillStyle="#334";
         drawarea.fillRect(0,0, context.width, context.height);
         fscan(drawarea);
         field.draw(drawarea);
+            
+        drawarea.font = "bold 24px courier";
+        drawarea.textAlign = "left";
+        drawarea.textBaseline = "top";
         drawarea.fillStyle = "#DD2";
         drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
         
@@ -531,7 +634,6 @@
                             buttons[bm].wh_size, buttons[bm].wh_size);
 
         if(!winflag) { shipt.draw(drawarea); }
-        
         drawEffects(drawarea);
         if(winflag)
             {
@@ -550,7 +652,6 @@
                    my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
                 }
             }
-        clicked = false;
         updateEffects();
         var winner = true;
         for(var x = 0; x < field.size; x++)
@@ -569,8 +670,10 @@
         }
     function GameLoop()
         {
-        GameUpdate();
+        Update();
         ReDraw();
+        clicked = false;
+        mousemoved = false;
         setTimeout("requestAnimationFrame(GameLoop);",20);
         }
     function GameClick(e)
@@ -581,6 +684,7 @@
         clicked = true;
         //ReDraw();
         }
+    context.onmousemove=function(e) { mx = e.pageX-context.offsetLeft; my = e.pageY-context.offsetTop; mousemoved = true; }
     context.onclick=GameClick;
     (function() {
       var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
