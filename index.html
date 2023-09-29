@@ -24,7 +24,7 @@
     var margin = 20;
     var factorycost = 30;
     var turretcost = 50;
-    var scannercost = 500;
+    var scannercost = 200;
     var scannerlvl = 0;
     
     function winfunction()
@@ -86,13 +86,21 @@
     var field = {};
     field.size = 10;
     field.items = [];
-    field.getItem = function(x, y) { return this.items[x*this.size+y]; }
+    field.res = [];
+    field.getRes = function(x, y)       { return this.res[x*this.size+y]; }
+    field.setRes = function(x, y, obj)  { this.res[x*this.size+y] = obj; }
+    field.getItem = function(x, y)      { return this.items[x*this.size+y]; }
     field.setItem = function(x, y, obj) { this.items[x*this.size+y] = obj; }
     field.wh_size = context.height - margin*2;
     field.y_up   = context.height - field.wh_size - margin;
     field.x_left = Math.round(context.width/2 - field.wh_size/2);
     field.step = field.wh_size/field.size;
-    
+    for(var x = 0; x<field.size; x++)
+    for(var y = 0; y<field.size; y++)
+        {
+        field.setRes(x,y,{res:"gold",concentration:5+Math.floor(Math.random()*10)});
+        }
+        
     function getNearBuilding(x,y,radius)
         {
         var near_rad = Infinity;
@@ -194,6 +202,7 @@
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.isalive = true;
+        this.production = field.getRes(px,py).concentration/100;
         factorycost+=5;
         }
     factory.prototype.destroy = function()
@@ -213,7 +222,7 @@
         }
     factory.prototype.act = function()
         {
-        gold+=0.05;
+        gold+=this.production;
         }
     function turret(px, py)
         {
@@ -319,7 +328,7 @@
         drawarea.textAlign="center";
         drawarea.textBaseline="middle";
         drawarea.fillStyle="#DD2";
-        drawarea.fillText("$30", this.x+field.step/2, this.y+field.step/2);
+        drawarea.fillText(this.text, this.x+field.step/2, this.y+field.step/2);
         }
     var fscan = fieldscan.bind({scanenabled:false});
     function ReDraw()
@@ -352,13 +361,13 @@
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
 
+        if(!winflag) { shipt.draw(drawarea); }
+        fscan(drawarea);
         if(winflag)
             {
             winfunc.act(); 
             //return;
             }
-        else { shipt.draw(drawarea); }
-        fscan(drawarea);
         }
     function GameUpdate()
         {
@@ -392,6 +401,7 @@
             if(mx > buttons[i].x && mx < buttons[i].x+buttons[i].wh_size &&
                my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
             }
+        fscan = fieldscan.bind({scanenabled:false});
         //ReDraw();
         }
     function GameScan(e)
@@ -399,16 +409,18 @@
         //console.log("mouseover");
         var mx = e.pageX-context.offsetLeft;
         var my = e.pageY-context.offsetTop;
-        //if (scannerlvl == 0) { return; }
+        if (scannerlvl == 0 || buildmode != "factory") { return; }
         mx -= field.x_left;
         my -= field.y_up;
         if (mx < 0 || mx >= field.wh_size) { return; }
         if (my < 0 || my >= field.wh_size) { return; }
         var px = Math.floor(mx/field.step);
         var py = Math.floor(my/field.step);
+        if (field.getItem(px,py) != undefined) { fscan = fieldscan.bind({scanenabled:false}); return; }
         fscan = fieldscan.bind({scanenabled:true,
                                 x:Math.floor(field.x_left+px*field.step),
-                                y:Math.floor(field.y_up  +py*field.step)});
+                                y:Math.floor(field.y_up  +py*field.step),
+                                text: "$"+field.getRes(px,py).concentration});
         }
     context.onclick=GameClick;
     context.onmousemove=GameScan;
