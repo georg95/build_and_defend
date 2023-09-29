@@ -761,6 +761,26 @@ body
             if(this.getItem(x,y) === undefined) { continue; }
             this.getItem(x,y).draw(drawarea);
             }
+        var dx = mx-this.x_left;
+        var dy = my-this.y_up;
+        if(dx>0 && dy>0 && dx<this.wh_size && dy<this.wh_size)
+            {
+            var sx = Math.floor(dx/this.step);
+            var sy = Math.floor(dy/this.step);
+            if(this.getItem(sx,sy) === undefined)
+                {
+                var img = undefined;
+                if(buildmode === "factory") { img = drill; }
+                if(buildmode === "turret")  { img = turret1; }
+                if(buildmode === "wall")    { img = wallimg; }
+                if(img !== undefined)
+                    {
+                    drawarea.globalAlpha = 0.2;
+                    drawarea.drawImage(img, this.x_left+sx*this.step, this.y_up+sy*this.step, this.step, this.step);
+                    drawarea.globalAlpha = 1;
+                    }
+                }
+            }
         }
     var ReDraw;
     var Update;
