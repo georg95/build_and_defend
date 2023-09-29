@@ -578,8 +578,8 @@
         if (scannerlvl == 0 || buildmode != "factory") { return; }
         mx -= field.x_left;
         my -= field.y_up;
-        if (mx < 0 || mx >= field.wh_size) { return; }
-        if (my < 0 || my >= field.wh_size) { return; }
+        if (mx < 0 || mx >= field.wh_size) { fscan = fieldscan.bind({scanenabled:false}); return; }
+        if (my < 0 || my >= field.wh_size) { fscan = fieldscan.bind({scanenabled:false}); return; }
         var px = Math.floor(mx/field.step);
         var py = Math.floor(my/field.step);
         if (field.getItem(px,py) != undefined) { fscan = fieldscan.bind({scanenabled:false}); return; }
