@@ -933,13 +933,14 @@ body
             if (!enemies[i].isalive) { enemies[i] = undefined; }
             }
         }
+    var lastframe = Date.now();
     function GameLoop()
         {
+        setTimeout("requestAnimationFrame(GameLoop);",30);
         Update();
         ReDraw();
         clicked = false;
         mousemoved = false;
-        setTimeout("requestAnimationFrame(GameLoop);",20);
         }
     function GameClick(e)
         {
