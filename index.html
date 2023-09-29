@@ -8,34 +8,43 @@
 <canvas height='400' width='600' id='game'>Bad browser</canvas>
 
 <script>
-var context = document.getElementById('game');
-var drawarea = context.getContext('2d');
+    var context = document.getElementById('game');
+    var drawarea = context.getContext('2d');
+    
+    var margin = 20;
+    var field = {};
+    field.wh_size = context.height - margin*2;
+    field.y_up   = context.height - field.wh_size - margin;
+    field.x_left = context.width  - field.wh_size - margin;
 
-drawarea.fillStyle="#334";
-drawarea.fillRect(0,0, context.width, context.height);
-console.log('canvas='+drawarea);
+    drawarea.fillStyle="#334";
+    drawarea.fillRect(0,0, context.width, context.height);
+    console.log('canvas='+drawarea);
 
-function drawField(context, drawarea)
-{
-drawarea.strokeStyle="black";
-var w = context.width;
-var h = context.height;
-var margin = 20;
-var line_l = h-margin*2
-var y_up   = h-line_l-margin;
-var x_left = w-line_l-margin;
-var step = line_l/10;
-for (var i = 1; i < 10; i++)
-    {
-    drawarea.moveTo(x_left,        y_up+i*step);
-    drawarea.lineTo(x_left+line_l, y_up+i*step);
-    drawarea.moveTo(x_left+i*step, y_up);
-    drawarea.lineTo(x_left+i*step, y_up+line_l);
-    }
-drawarea.stroke();
-drawarea.strokeRect(x_left, y_up, line_l, line_l);
-}
-drawField(context, drawarea);
+
+    function GameClick(e)
+        {
+        console.log("Click ("+e.pageX+", "+e.pageY+")");
+        }
+
+    context.onclick=GameClick;
+
+    function drawField(context, drawarea, x_left, y_up, line_l)
+        {
+        drawarea.strokeStyle="black";
+
+        var step = line_l/10;
+        for (var i = 1; i < 10; i++)
+            {
+            drawarea.moveTo(x_left,        y_up+i*step);
+            drawarea.lineTo(x_left+line_l, y_up+i*step);
+            drawarea.moveTo(x_left+i*step, y_up);
+            drawarea.lineTo(x_left+i*step, y_up+line_l);
+            }
+        drawarea.stroke();
+        drawarea.strokeRect(x_left, y_up, line_l, line_l);
+        }
+    drawField(context, drawarea, field.x_left, field.y_up, field.wh_size);
 </script>
 
 </body>
