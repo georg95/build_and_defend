@@ -43,6 +43,8 @@
     var wallcost = 60;
     var scannercost = 100;
     var scannerlvl = 0;
+    var waittime = 700;
+    var curr_wait = waittime;
     
     
     var soundeffect =
@@ -310,6 +312,60 @@
         return undefined;
         }
     
+    function bossturret(x, y)
+        {
+        this.x = x;
+        this.y = y;
+        this.maxhp = 100;
+        this.hp = this.maxhp;
+        this.isalive = true;
+        this.attackTime = 0;
+        this.shootstate = 0;
+        }
+    bossturret.prototype.move = function(dx, dy) { this.x+=dx; this.y+=dy; }
+    bossturret.prototype.hit = function(damage)
+        {
+        if (this.isalive === false) { return; }
+        this.hp-=damage;
+        if (this.hp<=0)
+            {
+            this.hp = 0;
+            this.isalive = false;
+            addEffect(Object.create(effectBoom).constructor(this.x, this.y));
+            }
+        }
+    bossturret.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.drawImage(bossturretimg, this.x, this.y, field.step, field.step);
+        }
+    bossturret.prototype.act = function()
+        {
+        this.attackTime++;
+        
+        var build = getNearBuilding(this.x, this.y, 120);
+        if (build != undefined)
+            {
+            if(this.shootstate == 0)
+                {
+                addEffect(Object.create(effectBullet).constructor(
+                    10, this.x+field.step/2, this.y+field.step/2, build.x+field.step/2, build.y+field.step/2));
+                build.hit(20);
+                this.shootstate = 15;
+                }
+            }
+        if(this.shootstate > 0) { this.shootstate--; }
+        }
+    
+    function boss()
+        {
+        this.x = Math.round(field.x_left+field.step*(field.size+4));
+        this.y = Math.round(field.y_up+field.step*field.size/2);
+        this.maxhp = 1000;
+        this.hp = this.maxhp;
+        }
+    
     function ship(px, py)
         {
         this.sx = Math.round(field.x_left+field.step*(field.size+px));
@@ -317,12 +373,12 @@
         this.x = this.sx;
         this.y = this.sy;
         this.attackTime = 0;
-        this.waitTime = 0;
         this.maxhp = 100;
         this.hp = this.maxhp;
-        this.act = this.waitattack;
+        this.act = this.attack;
         this.isalive = true;
         this.shootstate = 0;
+        this.vx = 2+Math.random();
         }
     ship.prototype.attack = function()
         {
@@ -339,7 +395,10 @@
                 this.shootstate = 15;
                 }
             }
-        else { this.x -= 3; }
+        else
+            {
+            this.x -= this.vx;
+            }
         if(this.shootstate > 0) { this.shootstate--; }
         if(this.x <= field.x_left)
             {
@@ -353,21 +412,7 @@
         if(this.sy >= field.y_up+field.wh_size) { this.sy = field.y_up; }
         this.x = this.sx;
         this.y = this.sy;
-        this.act = this.waitattack;
-        this.waitTime = 501;
-        }
-    ship.prototype.waitattack = function()
-        {
-        this.waitTime++;
-        if(this.waitTime > 500)
-            {
-            this.waitTime = 0;
-            this.act = this.attack;
-            }
-        }
-    ship.prototype.death = function()
-        {
-        // TODO
+        this.act = this.attack;
         }
     ship.prototype.hit = function(damage)
         {
@@ -378,7 +423,6 @@
             this.hp = 0;
             this.isalive = false;
             addEffect(Object.create(effectBoom).constructor(this.x, this.y));
-            this.act = this.death;
             }
         }
     ship.prototype.draw = function(area)
@@ -387,11 +431,23 @@
         area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
         area.drawImage(ship1, this.x, this.y, field.step, field.step);
         }
-    var shipt = new ship(1,3);
+    var enemies = [];
+    function addEnemy(en)
+        {
+        for (var i = 0; i <= enemies.length; i++)
+            {
+            if (enemies[i] === undefined) { enemies[i] = en; return; }
+            }
+        }
     function getNearEnemy(x,y,radius)
         {
-        if (winflag || shipt.act == shipt.waitattack) { return undefined; }
-        if ((x-shipt.x)*(x-shipt.x)+(y-shipt.y)*(y-shipt.y) < radius*radius) { return shipt; }
+        if (winflag) { return undefined; }
+        for (var i = 0; i < enemies.length; i++)
+            {
+            var curr_enemy = enemies[i];
+            if (curr_enemy === undefined) { continue; }
+            if ((x-curr_enemy.x)*(x-curr_enemy.x)+(y-curr_enemy.y)*(y-curr_enemy.y) < radius*radius) { return curr_enemy; }
+            }
         return undefined;
         }
     
@@ -676,7 +732,14 @@
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
 
-        if(!winflag) { shipt.draw(drawarea); }
+        if(!winflag)
+            {
+            for (var i = 0; i < enemies.length; i++)
+                {
+                if (enemies[i] === undefined) { continue; }
+                enemies[i].draw(drawarea);
+                }
+            }
         drawEffects(drawarea);
         if(winflag)
             {
@@ -707,9 +770,18 @@
             }
         if(winner) { winflag = true; }
         if(winflag) { return; }
-        shipt.act();
-        if (!shipt.isalive) { shipt = new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)); }
-        
+        curr_wait--;
+        if(curr_wait <= 0)
+            {
+            curr_wait = waittime;
+            addEnemy(new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)));
+            }
+        for(var i = 0; i < enemies.length; i++)
+            {
+            if(enemies[i] === undefined) { continue; }
+            enemies[i].act();
+            if (!enemies[i].isalive) { enemies[i] = undefined; }
+            }
         }
     function GameLoop()
         {
