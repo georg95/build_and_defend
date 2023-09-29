@@ -21,6 +21,8 @@
     
     var drill = new Image();
     drill.src = "building229.png";
+    var sellimg = new Image();
+    sellimg.src = "sell.png";
     var turret1 = new Image();
     turret1.src = "turret.png";
     var ship1 = new Image();
@@ -61,6 +63,15 @@
         boomsounds:[],
         bulletsouns:[],
         alienlasersounds:[],
+        sellsounds:[],
+        addSell: function()
+            {
+            for(var i = 0; i < this.sellsounds.length; i++)
+                {
+                var cur_snd = this.sellsounds[i];
+                if(cur_snd.paused) { cur_snd.play(); break; }
+                }
+            },
         addLaser: function()
             {
             for(var i = 0; i < this.lasersounds.length; i++)
@@ -71,7 +82,7 @@
             },
         addAlienLaser: function()
             {
-            for(var i = 0; i < this.lasersounds.length; i++)
+            for(var i = 0; i < this.alienlasersounds.length; i++)
                 {
                 var cur_snd = this.alienlasersounds[i];
                 if(cur_snd.paused) { cur_snd.play(); break; }
@@ -104,6 +115,8 @@
         soundeffect.bulletsouns[i].volume = 0.2;
         soundeffect.alienlasersounds[i] = new Audio("laser2.ogg");
         soundeffect.alienlasersounds[i].volume = 0.2;
+        soundeffect.sellsounds[i] = new Audio("sell.ogg");
+        soundeffect.sellsounds[i].volume = 0.2;
         }
     var effect =
         {
@@ -285,10 +298,18 @@
     wallbutton.img = wallimg;
     wallbutton.click = function() { buildmode = "wall"; }
     wallbutton.cost = function() { return wallcost; }
+    var sellbutton = {};
+    sellbutton.x = margin;
+    sellbutton.y = wallbutton.y+wallbutton.wh_size+5;
+    sellbutton.wh_size = 32;
+    sellbutton.img = sellimg;
+    sellbutton.click = function() { buildmode = "sell"; }
+    sellbutton.cost = function() { return undefined; }
+    
     var scannerbutton =
         {
         x: margin,
-        y: wallbutton.y+wallbutton.wh_size+5,
+        y: sellbutton.y+sellbutton.wh_size+5,
         wh_size: 32,
         img: scanner1,
         click: function()
@@ -304,7 +325,7 @@
             },
         cost: function() { return scannercost; }
         }    
-    var buttons = [turretbutton, factorybutton, wallbutton, scannerbutton];
+    var buttons = [turretbutton, factorybutton, wallbutton, sellbutton, scannerbutton];
     
     
     field.size = 10;
@@ -536,6 +557,11 @@
         this.isalive = true;
         wallcost+=15;
         }
+    wall.prototype.sell = function()
+        {
+        wallcost-=15;
+        gold+=wallcost;
+        }
     wall.prototype.destroy = function()
         {
         wallcost-=15;
@@ -563,6 +589,11 @@
         this.production = field.getRes(px,py).concentration;
         this.prodStage = 0;
         factorycost+=5;
+        }
+    factory.prototype.sell = function()
+        {
+        factorycost-=5;
+        gold+=factorycost;
         }
     factory.prototype.destroy = function()
         {
@@ -608,6 +639,11 @@
         turretcost-=10;
         addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
+    turret.prototype.sell = function()
+        {
+        turretcost-=10;
+        gold+=turretcost;
+        }
     turret.prototype.hit = function(damage)
         {
         this.hp-=damage;
@@ -650,6 +686,17 @@
         var rely = Math.floor((y-this.y_up)/this.wh_size*this.size);
         if (relx >= 0 && rely >= 0 && relx < this.size && rely < this.size)
             {
+            if (buildmode == "sell")
+                {
+                var item = this.getItem(relx, rely);
+                if (item === undefined) { return; }
+                if (item.sell != undefined)
+                    {
+                    item.sell();
+                    soundeffect.addSell();
+                    this.setItem(relx, rely, undefined);
+                    }
+                }
             if (this.getItem(relx, rely) != undefined) { return; }
             if (buildmode == "factory")
                 {
@@ -669,6 +716,7 @@
                 gold -= wallcost;
                 this.setItem(relx, rely, new wall(relx, rely));
                 }
+
             }
         }
 
@@ -795,6 +843,7 @@
             {
             drawarea.drawImage(buttons[i].img, buttons[i].x, buttons[i].y,
                                buttons[i].wh_size, buttons[i].wh_size);
+            if (buttons[i].cost() != undefined)
             drawarea.fillText("$"+buttons[i].cost(),
                               buttons[i].x+buttons[i].wh_size,
                               buttons[i].y+buttons[i].wh_size);
@@ -803,6 +852,7 @@
         if (buildmode == "turret")  { bm = 0; }
         if (buildmode == "factory") { bm = 1; }
         if (buildmode == "wall")    { bm = 2; }
+        if (buildmode == "sell")    { bm = 3; }
         drawarea.strokeStyle="#F00";
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
