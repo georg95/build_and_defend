@@ -291,7 +291,7 @@ body
     function fieldscan(drawarea)
         {
         if (this.scanenabled === false) { return; }
-        //drawarea.globalAlpha=0.3;
+        drawarea.globalAlpha=0.6;
         for (var x = 0; x < field.size; x++)
         for (var y = 0; y < field.size; y++)
             {
@@ -304,7 +304,7 @@ body
             
             drawarea.fillRect(field.x_left+x*field.step+2, field.y_up+y*field.step+2, field.step-4, field.step-4);
             }
-        //drawarea.globalAlpha=1;
+        drawarea.globalAlpha=1;
         }
     var fscan = fieldscan.bind({scanenabled:false});
     function actbutton(cx, cy, img)
