@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset='utf-8'>
-<title>mineroids</title>
+<title>build&amp;defence</title>
 </head>
 <body>
 
@@ -45,12 +45,16 @@
     var factorycost = 30;
     var turretcost = 50;
     var wallcost = 60;
-    var scannercost = 100;
+    var scannercost = 50;
     var scannerlvl = 0;
     var waittime = 700;
     var curr_wait = waittime;
-    
-    
+    var gold = 120;
+    var endflag = false;
+    var winflag = false;
+    var loseflag = false;
+
+
     var soundeffect =
         {
         lasersounds:[],
@@ -208,13 +212,13 @@
             }
         }
     
-    function winfunction()
+    function endfunction()
         {
         this.state = 0;
+        this.act = this.win;
         }
-    winfunction.prototype.act = function ()
+    endfunction.prototype.win = function ()
         {
-        //console.log("win!");
         this.state += 0.2;
         drawarea.font = "bold 120px sans-serif";
         drawarea.textAlign = "center";
@@ -226,7 +230,19 @@
         drawarea.fillText("YOU WIN", 0, 0);
         drawarea.resetTransform();
         }
-    var winfunc = new winfunction();
+    endfunction.prototype.lose = function ()
+        {
+        this.state += 0.1;
+        drawarea.font = "bold 120px sans-serif";
+        drawarea.textAlign = "center";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle="rgba(250,0,0,"+(0.75+0.25*Math.cos(this.state))+")";
+        drawarea.fillText("YOU LOSE", context.width/2, context.height/2);
+        }
+    var endfunc = new endfunction();
+    
+    function switchlose () { endfunc.act = endfunc.lose; endflag = true; loseflag = true; }
+    function switchwin ()  { endfunc.act = endfunc.win; endflag = true; winflag = true; }
     
     function fieldscan(drawarea)
         {
@@ -247,8 +263,6 @@
         drawarea.globalAlpha=1;
         }
     var fscan = fieldscan.bind({scanenabled:false});
-    var gold = 120;
-    var winflag = false;
     
     var turretbutton = {};
     turretbutton.x = margin;
@@ -282,7 +296,7 @@
             
             if (gold < scannercost) { return; }
             gold -= scannercost;
-            scannercost+=100;
+            scannercost+=50;
             console.log("scanner");
                 fscan = fieldscan.bind({scanenabled: true});
                 setTimeout("fscan=fieldscan.bind({scanenabled: false});", 30000);
@@ -384,36 +398,38 @@
         {
         this.x = Math.round(field.x_left+field.step*(field.size+4));
         this.y = Math.round(field.y_up+field.step*(field.size/2));
-        this.maxhp = 1000;
+        this.maxhp = 500;
         this.hp = this.maxhp;
-        this.leftturret  = new bossturret(this.x, this.y-field.step/2);
-        this.rightturret = new bossturret(this.x, this.y+field.step/2);
-        addEnemy(this.leftturret);
-        addEnemy(this.rightturret);
+        this.turrets = [];
+        this.turrets[0] = new bossturret(this.x-field.step/4, this.y-field.step/2);
+        this.turrets[1] = new bossturret(this.x-field.step/4, this.y+field.step/2);
+        this.turrets[2] = new bossturret(this.x+field.step/4, this.y-field.step/2);
+        this.turrets[3] = new bossturret(this.x+field.step/4, this.y+field.step/2);
+        for (var i in this.turrets) { addEnemy(this.turrets[i]); }
         this.buildstate = 500;
         this.isalive = true;
         }
     boss.prototype.act = function()
         {
-        this.x -= 1;
-        if (this.leftturret  != undefined)
+        this.x -= 0.5;
+        for (var i in this.turrets)
             {
-            this.leftturret.move(-1, 0);
-            if(this.leftturret.isalive == false)  { this.leftturret  = undefined; }
+            if (this.turrets[i] === undefined) { continue; }
+            this.turrets[i].move(-0.5, 0);
+            if(this.turrets[i].isalive == false) { this.turrets[i] = undefined; }
             }
-        if (this.rightturret != undefined)
-            {
-            this.rightturret.move(-1, 0);
-            if(this.rightturret.isalive == false) { this.rightturret = undefined; }
-            }
+        if(this.x <= 0) { switchlose(); }
         }
     boss.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
         area.fillRect(this.x-field.step, this.y-field.step-4, Math.round(2*field.step*this.hp/this.maxhp), 4);
         area.drawImage(bossimg, this.x-field.step, this.y-field.step, 2*field.step, 2*field.step);
-        if (this.leftturret  != undefined) { this.leftturret.drawself(area); }
-        if (this.rightturret != undefined) { this.rightturret.drawself(area); }
+        for (var i in this.turrets)
+            {
+            if(this.turrets[i] === undefined) { continue; }
+            this.turrets[i].drawself(area);
+            }
         }
     boss.prototype.hit = function(damage)
         {
@@ -423,6 +439,7 @@
             {
             this.hp = 0;
             this.isalive = false;
+            switchwin();
             addEffect(Object.create(effectBoom).constructor(this.x, this.y));
             }
         }
@@ -500,7 +517,7 @@
         }
     function getNearEnemy(x,y,radius)
         {
-        if (winflag) { return undefined; }
+        if (endflag) { return undefined; }
         for (var i = 0; i < enemies.length; i++)
             {
             var curr_enemy = enemies[i];
@@ -790,21 +807,20 @@
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
         
-        if(!winflag)
+
+        for (var i = 0; i < enemies.length; i++)
             {
-            for (var i = 0; i < enemies.length; i++)
-                {
-                if (enemies[i] === undefined) { continue; }
-                enemies[i].draw(drawarea);
-                }
+            if (enemies[i] === undefined) { continue; }
+            enemies[i].draw(drawarea);
             }
         drawEffects(drawarea);
-        if(winflag)
+        if(endflag)
             {
-            winfunc.act(); 
+            endfunc.act(); 
             //return;
             }
         }
+    var boominterval = 0;
     function GameUpdate()
         {
         if (clicked)
@@ -817,17 +833,16 @@
                 }
             }
         updateEffects();
-        var winner = true;
+        var boom = false;
+        if(endflag) { if(boominterval == 0) { boominterval = 10; boom = true; } else { boominterval--; } }
         for(var x = 0; x < field.size; x++)
         for(var y = 0; y < field.size; y++)
             {
             var curritem = field.getItem(x,y);
-            if(curritem === undefined) { winner = false; continue; }
-            if(!curritem.isalive) { curritem.destroy(); field.setItem(x,y, undefined); }
+            if(curritem === undefined) { continue; }
+            if(!curritem.isalive || (boom && loseflag)) { curritem.destroy(); field.setItem(x,y, undefined); boom = false; }
             else { curritem.act(); }
             }
-        if(winner) { winflag = true; }
-        if(winflag) { return; }
         curr_wait--;
         if(curr_wait == 0)
             {
@@ -848,6 +863,7 @@
         for(var i = 0; i < enemies.length; i++)
             {
             if(enemies[i] === undefined) { continue; }
+            if (boom && winflag) { enemies[i].hit(1000); boom = false; }
             enemies[i].act();
             if (!enemies[i].isalive) { enemies[i] = undefined; }
             }
