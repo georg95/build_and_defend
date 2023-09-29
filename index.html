@@ -92,7 +92,7 @@
             if(this.shootstate == 0)
                 {
                 build.hit(30);
-                this.shootstate = 25;
+                this.shootstate = 15;
                 }
             }
         if(this.shootstate > 0) { this.shootstate--; }
@@ -104,9 +104,12 @@
         }
     ship.prototype.goback = function()
         {
+        this.sy+=field.step;
+        if(this.sy >= field.y_up+field.wh_size) { this.sy = field.y_up; }
         this.x = this.sx;
         this.y = this.sy;
         this.act = this.waitattack;
+        this.waitTime = 501;
         }
     ship.prototype.waitattack = function()
         {
