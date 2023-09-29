@@ -272,7 +272,7 @@ body
         drawarea.translate(Math.round(context.width/2), Math.round(context.height/2));
         drawarea.rotate(Math.cos(this.state)/5);
         drawarea.fillText("YOU WIN", 0, 0);
-        drawarea.resetTransform();
+        drawarea.setTransform(1, 0, 0, 1, 0, 0);
         }
     endfunction.prototype.lose = function ()
         {
@@ -460,7 +460,7 @@ body
         area.translate(this.x, this.y);
         area.rotate(this.angle);
         area.drawImage(bossturretimg, -field.step/4, -field.step/4, field.step/2, field.step/2);
-        area.resetTransform();
+        area.setTransform(1, 0, 0, 1, 0, 0);
         }
     bossturret.prototype.act = function()
         {
@@ -729,7 +729,7 @@ body
         area.translate(Math.round(this.x), Math.round(this.y));
         area.rotate(this.angle);
         area.drawImage(turret1, -Math.round(field.step/2), -Math.round(field.step/2), field.step, field.step);
-        area.resetTransform();
+        area.setTransform(1, 0, 0, 1, 0, 0);
         }
     turret.prototype.act = function()
         {
