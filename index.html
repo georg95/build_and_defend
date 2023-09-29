@@ -17,11 +17,15 @@
     turret1.src = "turret.png";
     var ship1 = new Image();
     ship1.src = "ship1.png";
+    var scanner1 = new Image();
+    scanner1.src = "scanner.png";
     
     var buildmode = "factory";
     var margin = 20;
     var factorycost = 30;
     var turretcost = 50;
+    var scannercost = 500;
+    var scannerlvl = 0;
     
     function winfunction()
         {
@@ -61,9 +65,23 @@
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
     factorybutton.cost = function() { return factorycost; }
-    var buttons = [turretbutton, factorybutton];
-    
-
+    var scannerbutton =
+        {
+        x: margin,
+        y: factorybutton.y+factorybutton.wh_size+5,
+        wh_size: 32,
+        img: scanner1,
+        click: function()
+            {
+            console.log("scanner");
+            if (gold < scannercost) { return; }
+            gold -= scannercost;
+            scannercost+=100;
+            scannerlvl++;
+            },
+        cost: function() { return scannercost; }
+        }    
+    var buttons = [turretbutton, factorybutton, scannerbutton];
     
     var field = {};
     field.size = 10;
@@ -292,7 +310,18 @@
             }
         }
 
-
+    function fieldscan(drawarea)
+        {
+        if (this.scanenabled === false) { return; }
+        drawarea.fillStyle="#000";
+        drawarea.fillRect(this.x,this.y,field.step,field.step);
+        drawarea.font="bold 10px sans-serif";
+        drawarea.textAlign="center";
+        drawarea.textBaseline="middle";
+        drawarea.fillStyle="#DD2";
+        drawarea.fillText("$30", this.x+field.step/2, this.y+field.step/2);
+        }
+    var fscan = fieldscan.bind({scanenabled:false});
     function ReDraw()
         {
         drawarea.font = "bold 24px courier";
@@ -326,9 +355,10 @@
         if(winflag)
             {
             winfunc.act(); 
-            return;
+            //return;
             }
-        shipt.draw(drawarea);
+        else { shipt.draw(drawarea); }
+        fscan(drawarea);
         }
     function GameUpdate()
         {
@@ -364,7 +394,24 @@
             }
         //ReDraw();
         }
+    function GameScan(e)
+        {
+        //console.log("mouseover");
+        var mx = e.pageX-context.offsetLeft;
+        var my = e.pageY-context.offsetTop;
+        //if (scannerlvl == 0) { return; }
+        mx -= field.x_left;
+        my -= field.y_up;
+        if (mx < 0 || mx >= field.wh_size) { return; }
+        if (my < 0 || my >= field.wh_size) { return; }
+        var px = Math.floor(mx/field.step);
+        var py = Math.floor(my/field.step);
+        fscan = fieldscan.bind({scanenabled:true,
+                                x:Math.floor(field.x_left+px*field.step),
+                                y:Math.floor(field.y_up  +py*field.step)});
+        }
     context.onclick=GameClick;
+    context.onmousemove=GameScan;
     setInterval(GameLoop, 30);
 </script>
 
