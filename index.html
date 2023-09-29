@@ -5,7 +5,7 @@
 <title>mineroids</title>
 </head>
 <body>
-<canvas height='400' width='600' id='game'>Bad browser</canvas>
+<canvas height='400' width='800' id='game'>Bad browser</canvas>
 
 <script>
     var context = document.getElementById('game');
@@ -14,6 +14,9 @@
     drill.src = "building229.png";
     var turret = new Image();
     turret.src = "turret.png";
+    var ship1 = new Image();
+    ship1.src = "ship1.png";
+    
     var buildmode = "factory";
     var margin = 20;
     
@@ -42,7 +45,8 @@
     field.setItem = function(x, y, obj) { this.items[x*this.size+y] = obj; }
     field.wh_size = context.height - margin*2;
     field.y_up   = context.height - field.wh_size - margin;
-    field.x_left = context.width  - field.wh_size - margin;
+    field.x_left = Math.round(context.width/2 - field.wh_size/2);
+    field.step = field.wh_size/field.size;
     field.click = function(x,y)
         {
         var relx = (x-this.x_left)/this.wh_size*this.size;
@@ -65,6 +69,51 @@
                 }
             }
         }
+    function ship(px, py)
+        {
+        this.sx = Math.round(field.x_left+field.step*(field.size+px));
+        this.sy = Math.round(field.y_up+field.step*py);
+        this.x = this.sx;
+        this.y = this.sy;
+        this.attackTime = 0;
+        this.waitTime = 0;
+        this.maxhp = 100;
+        this.hp = this.maxhp;
+        this.act = this.waitattack;
+        }
+    ship.prototype.attack = function()
+        {
+        this.attackTime++;
+        this.x -= 1;
+        if(this.attackTime > 200)
+            {
+            this.attackTime = 0;
+            this.act = this.goback;
+            }
+        }
+    ship.prototype.goback = function()
+        {
+        this.x = this.sx;
+        this.y = this.sy;
+        this.act = this.waitattack;
+        }
+    ship.prototype.waitattack = function()
+        {
+        this.waitTime++;
+        if(this.waitTime > 500)
+            {
+            this.waitTime = 0;
+            this.act = this.attack;
+            }
+        }
+    ship.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.drawImage(ship1, this.x, this.y, field.step, field.step);
+        }
+    shipt = new ship(2,3);
+    
     console.log(field.items);
 
     console.log('canvas='+drawarea);
@@ -122,10 +171,12 @@
         drawarea.strokeStyle="#F00";
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
+        shipt.draw(drawarea);
         }
     function GameUpdate()
         {
         gold += goldprod;
+        shipt.act();
         }
     function GameLoop()
         {
