@@ -2,7 +2,6 @@
 <html>
 <head>
 <meta charset='utf-8'>
-<title>build&amp;defence</title>
 </head>
 <style>
 body 
@@ -44,6 +43,14 @@ body
     bossturretimg.src = "boss_gun1.png";
     var bossimg = new Image();
     bossimg.src = "boss.png";
+    var pauseimg = new Image();
+    pauseimg.src= "pause.png";
+    var playimg = new Image();
+    playimg.src= "play.png";
+    var replayimg = new Image();
+    replayimg.src = "replay.png";
+    var menuimg = new Image();
+    menuimg.src = "menu.png"
     
     var background = new Image();
     background.src = "bg.png";
@@ -53,23 +60,26 @@ body
     var clicked = false;
     var mousemoved = false;
     var field = {};
-    
+
     var buildmode = "factory";
     var margin = 40;
-    var factorycost = 30;
-    var turretcost = 50;
-    var wallcost = 60;
-    var scannercost = 50;
-    var scannerlvl = 0;
+    var factorycost;
+    var turretcost;
+    var wallcost;
+    var scannercost;
+    var scannerlvl;
     var buttonsize = 64;
     var waittime = 700;
-    var curr_wait = waittime;
-    var gold = 120;
+    var curr_wait;
+    var gold;
     var endflag = false;
     var winflag = false;
     var loseflag = false;
-
-
+    var enemies;
+    var effects;
+    var paused = false;
+    var doctitle = "build&defence";
+    
     var soundeffect =
         {
         lasersounds:[],
@@ -218,7 +228,6 @@ body
         {
         area.drawImage(boom[8-this.time],this.sx-field.step/2, this.sy-field.step/2, field.step, field.step);
         }
-    var effects = [];
     function updateEffects()
         {
         effects.forEach(function(elem, index, arr)
@@ -289,7 +298,66 @@ body
         drawarea.globalAlpha=1;
         }
     var fscan = fieldscan.bind({scanenabled:false});
-    
+    var pausebutton =
+        {
+        x: margin,
+        y: 5,
+        wh_size: margin-10,
+        img: pauseimg,
+        click: function(x,y)
+            {
+            var dx = x-this.x;
+            var dy = y-this.y;
+            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
+            paused = !paused;
+            if(paused) { document.title=doctitle+" [paused]"; this.img = playimg; }
+            else       { document.title=doctitle;             this.img = pauseimg; }
+            return true;
+            },
+        draw: function(area)
+            {
+            area.drawImage(this.img, this.x, this.y, this.wh_size, this.wh_size);
+            }
+        };
+    var replaybutton =
+        {
+        x: pausebutton.x+pausebutton.wh_size+10,
+        y: pausebutton.y,
+        wh_size: pausebutton.wh_size,
+        click: function(x,y)
+            {
+            var dx = x-this.x;
+            var dy = y-this.y;
+            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
+            setdefaults();
+            return true;
+            },
+        draw: function(area)
+            {
+            area.drawImage(replayimg, this.x, this.y, this.wh_size, this.wh_size);
+            }
+        };
+    var menubutton =
+        {
+        x: replaybutton.x+replaybutton.wh_size+10,
+        y: replaybutton.y,
+        wh_size: replaybutton.wh_size,
+        img: pauseimg,
+        click: function(x,y)
+            {
+            var dx = x-this.x;
+            var dy = y-this.y;
+            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
+            ReDraw = MenuDraw;
+            Update = MenuUpdate;
+            return true;
+            },
+        draw: function(area)
+            {
+            area.drawImage(menuimg, this.x, this.y, this.wh_size, this.wh_size);
+            }
+        };
+    var actionbuttons = [replaybutton, pausebutton, menubutton];
     var turretbutton = {};
     turretbutton.x = margin;
     turretbutton.y = margin+40;
@@ -333,7 +401,7 @@ body
             scannercost+=50;
             console.log("scanner");
                 fscan = fieldscan.bind({scanenabled: true});
-                setTimeout("fscan=fieldscan.bind({scanenabled: false});", 30000);
+            this.timer = setTimeout("fscan=fieldscan.bind({scanenabled: false});", 30000);
             scannerlvl++;
             },
         cost: function() { return scannercost; }
@@ -352,12 +420,8 @@ body
     field.y_up   = context.height - field.wh_size - margin;
     field.x_left = Math.round(context.width/2 - field.wh_size/2);
     field.step = field.wh_size/field.size;
-    for(var x = 0; x<field.size; x++)
-    for(var y = 0; y<field.size; y++)
-        {
-        field.setRes(x,y,{res:"gold",concentration:5+Math.floor(Math.random()*10)});
-        }
-        
+    
+
     function getNearBuilding(x,y,radius)
         {
         var near_rad = Infinity;
@@ -541,7 +605,7 @@ body
         area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4);
         area.drawImage(ship1, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
-    var enemies = [];
+    
     function addEnemy(en)
         {
         for (var i = 0; i <= enemies.length; i++)
@@ -733,10 +797,33 @@ body
             }
         }
 
-    console.log(field.items);
-
-    console.log('canvas='+drawarea);
-    //field.setItem(3, 7, "factory");
+    function setdefaults()
+        {
+        buildmode = "factory";
+        factorycost = 30;
+        turretcost = 50;
+        wallcost = 60;
+        scannercost = 50;
+        scannerlvl = 0;
+        curr_wait = waittime;
+        gold = 120;
+        endflag = false;
+        winflag = false;
+        loseflag = false;
+        paused = false;
+        effects = [];
+        fscan=fieldscan.bind({scanenabled: false});
+        if(scannerbutton.timer != undefined) { clearTimeout(scannerbutton.timer); }
+        for(var x = 0; x<field.size; x++)
+        for(var y = 0; y<field.size; y++)
+            {
+            field.setItem(x,y,undefined);
+            field.setRes(x,y,{res:"gold",concentration:5+Math.floor(Math.random()*10)});
+            }
+        enemies = [];
+        document.title=doctitle;
+        }
+    setdefaults();
 
     function DrawBg()
         {
@@ -889,7 +976,6 @@ body
     menubuttons[1] = new menuButton(3, "HELP", function()  {ReDraw = HelpDraw;  Update=HelpUpdate;});
     menubuttons[2] = new menuButton(4, "ABOUT", function() {ReDraw = AboutDraw; Update=AboutUpdate;});
     
-    
     function MenuDraw()
         {
         //drawarea.fillStyle="#334";
@@ -918,7 +1004,7 @@ body
         DrawBg();
         fscan(drawarea);
         field.draw(drawarea);
-            
+        for(var i in actionbuttons) { actionbuttons[i].draw(drawarea); }
         drawarea.font = "bold 24px courier";
         drawarea.textAlign = "left";
         drawarea.textBaseline = "top";
@@ -965,6 +1051,7 @@ body
         {
         if (clicked)
             {
+            for(var i in actionbuttons) { actionbuttons[i].click(mx, my); }
             field.click(mx, my);
             for (var i = 0; i < buttons.length; i++)
                 {
@@ -972,6 +1059,7 @@ body
                    my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
                 }
             }
+        if(paused) { return; }
         updateEffects();
         var boom = false;
         if(endflag) { if(boominterval == 0) { boominterval = 10; boom = true; } else { boominterval--; } }
@@ -983,6 +1071,7 @@ body
             if(!curritem.isalive || (boom && loseflag)) { curritem.destroy(); field.setItem(x,y, undefined); boom = false; }
             else { curritem.act(); }
             }
+        
         curr_wait--;
         if(curr_wait == 0)
             {
