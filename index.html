@@ -1128,9 +1128,9 @@ canvas
                          "Все звуки взяты с freesound.org",
                          "По поводу ошибок или по любому другому поводу пишите сюда: jura913@yandex.ru"]}
         var locale = navigator.language;
-        drawarea.fillText(text[locale][0]||text["en"][0], context.width/2, context.height/2);
-        drawarea.fillText(text[locale][1]||text["en"][1], context.width/2, context.height/2+textsize*1.5);
-        drawarea.fillText(text[locale][2]||text["en"][2], context.width/2, context.height/2+textsize*3);
+        drawarea.fillText(text[locale]?text[locale][0]:text["en"][0], context.width/2, context.height/2);
+        drawarea.fillText(text[locale]?text[locale][1]:text["en"][1], context.width/2, context.height/2+textsize*1.5);
+        drawarea.fillText(text[locale]?text[locale][2]:text["en"][2], context.width/2, context.height/2+textsize*3);
         tomenubutton.draw(drawarea);
         }
     function AboutUpdate()
