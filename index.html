@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>mineroids</title>
+</head>
+<body>
+<canvas height='400' width='600' id='game'>Bad browser</canvas>
+
+<script>
+var context = document.getElementById('game');
+var drawarea = context.getContext('2d');
+
+drawarea.fillStyle="#334";
+drawarea.fillRect(0,0, context.width, context.height);
+console.log('canvas='+drawarea);
+
+function drawField(context, drawarea)
+{
+drawarea.strokeStyle="black";
+var w = context.width;
+var h = context.height;
+var margin = 20;
+var line_l = h-margin*2
+var y_up   = h-line_l-margin;
+var x_left = w-line_l-margin;
+var step = line_l/10;
+for (var i = 1; i < 10; i++)
+    {
+    drawarea.moveTo(x_left,        y_up+i*step);
+    drawarea.lineTo(x_left+line_l, y_up+i*step);
+    drawarea.moveTo(x_left+i*step, y_up);
+    drawarea.lineTo(x_left+i*step, y_up+line_l);
+    }
+drawarea.stroke();
+drawarea.strokeRect(x_left, y_up, line_l, line_l);
+}
+drawField(context, drawarea);
+</script>
+
+</body>
+</html>
