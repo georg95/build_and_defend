@@ -10,41 +10,69 @@
 <script>
     var context = document.getElementById('game');
     var drawarea = context.getContext('2d');
-    
+    var drill = new Image();
+    drill.src = "building229.png";
     var margin = 20;
     var field = {};
+    field.size = 10;
+    field.items = [];
+    field.getItem = function(x, y) { return this.items[x*this.size+y]; }
+    field.setItem = function(x, y, obj) { this.items[x*this.size+y] = obj; }
     field.wh_size = context.height - margin*2;
     field.y_up   = context.height - field.wh_size - margin;
     field.x_left = context.width  - field.wh_size - margin;
-
+    field.click = function(x,y)
+        {
+        var relx = (x-this.x_left)/this.wh_size*this.size;
+        var rely = (y-this.y_up)/this.wh_size*this.size;
+        if (relx > 0 && rely > 0 && relx < this.size && rely < this.size)
+            {
+            this.setItem(Math.floor(relx), Math.floor(rely), "factory");
+            }
+        }
+    console.log(field.items);
     drawarea.fillStyle="#334";
     drawarea.fillRect(0,0, context.width, context.height);
     console.log('canvas='+drawarea);
-
+    //field.setItem(3, 7, "factory");
 
     function GameClick(e)
         {
         console.log("Click ("+e.pageX+", "+e.pageY+")");
+        field.click(e.pageX-context.offsetLeft, e.pageY-context.offsetTop);
+            
+        drawarea.fillStyle="#334";
+        drawarea.fillRect(0,0, context.width, context.height);
+        field.draw(drawarea);
         }
 
     context.onclick=GameClick;
 
-    function drawField(context, drawarea, x_left, y_up, line_l)
+    field.draw = function (drawarea)
         {
         drawarea.strokeStyle="black";
 
-        var step = line_l/10;
-        for (var i = 1; i < 10; i++)
+        var step = this.wh_size/this.size;
+        for (var i = 1; i < this.size; i++)
             {
-            drawarea.moveTo(x_left,        y_up+i*step);
-            drawarea.lineTo(x_left+line_l, y_up+i*step);
-            drawarea.moveTo(x_left+i*step, y_up);
-            drawarea.lineTo(x_left+i*step, y_up+line_l);
+            drawarea.moveTo(this.x_left,              this.y_up+i*step);
+            drawarea.lineTo(this.x_left+this.wh_size, this.y_up+i*step);
+            drawarea.moveTo(this.x_left+i*step, this.y_up);
+            drawarea.lineTo(this.x_left+i*step, this.y_up+this.wh_size);
             }
         drawarea.stroke();
-        drawarea.strokeRect(x_left, y_up, line_l, line_l);
+        drawarea.strokeRect(this.x_left, this.y_up, this.wh_size, this.wh_size);
+        for(var x = 0; x < this.size; x++)
+        for(var y = 0; y < this.size; y++)
+            {
+            if(this.getItem(x,y) == "factory")
+                {
+                console.log("factory found");
+                drawarea.drawImage(drill, this.x_left+x*step, this.y_up+y*step, step, step);
+                }
+            }
         }
-    drawField(context, drawarea, field.x_left, field.y_up, field.wh_size);
+    field.draw(drawarea);
 </script>
 
 </body>
