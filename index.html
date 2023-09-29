@@ -31,6 +31,7 @@
     var mx = 0;
     var my = 0;
     var clicked = false;
+    var field = {};
     
     var buildmode = "factory";
     var margin = 20;
@@ -184,7 +185,25 @@
         }
     var winfunc = new winfunction();
     
-    
+    function fieldscan(drawarea)
+        {
+        if (this.scanenabled === false) { return; }
+        drawarea.globalAlpha=0.3;
+        for (var x = 0; x < field.size; x++)
+        for (var y = 0; y < field.size; y++)
+            {
+            if (field.getItem(x,y) != undefined) { continue; }
+            var valuable = field.getRes(x,y).concentration;
+            if(valuable < 7) { drawarea.fillStyle="#F00"; }
+            if(valuable >= 7 && valuable < 10) { drawarea.fillStyle="#F80"; }
+            if(valuable >= 10 && valuable < 13) { drawarea.fillStyle="#FF0"; }
+            if(valuable >= 13) { drawarea.fillStyle="#0F0"; }
+            
+            drawarea.fillRect(field.x_left+x*field.step+2, field.y_up+y*field.step+2, field.step-4, field.step-4);
+            }
+        drawarea.globalAlpha=1;
+        }
+    var fscan = fieldscan.bind({scanenabled:false});
     var gold = 120;
     var winflag = false;
     
@@ -210,17 +229,20 @@
         img: scanner1,
         click: function()
             {
-            console.log("scanner");
+            
             if (gold < scannercost) { return; }
             gold -= scannercost;
             scannercost+=100;
+            console.log("scanner");
+                fscan = fieldscan.bind({scanenabled: true});
+                setTimeout("fscan=fieldscan.bind({scanenabled: false});", 30000);
             scannerlvl++;
             },
         cost: function() { return scannercost; }
         }    
     var buttons = [turretbutton, factorybutton, scannerbutton];
     
-    var field = {};
+    
     field.size = 10;
     field.items = [];
     field.res = [];
@@ -476,18 +498,7 @@
             }
         }
 
-    function fieldscan(drawarea)
-        {
-        if (this.scanenabled === false) { return; }
-        drawarea.fillStyle="#000";
-        drawarea.fillRect(this.x,this.y,field.step,field.step);
-        drawarea.font="bold 10px sans-serif";
-        drawarea.textAlign="center";
-        drawarea.textBaseline="middle";
-        drawarea.fillStyle="#DD2";
-        drawarea.fillText(this.text, this.x+field.step/2, this.y+field.step/2);
-        }
-    var fscan = fieldscan.bind({scanenabled:false});
+
     function ReDraw()
         {
         drawarea.font = "bold 24px courier";
@@ -495,6 +506,7 @@
         drawarea.textBaseline = "top";
         drawarea.fillStyle="#334";
         drawarea.fillRect(0,0, context.width, context.height);
+        fscan(drawarea);
         field.draw(drawarea);
         drawarea.fillStyle = "#DD2";
         drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
@@ -519,7 +531,7 @@
                             buttons[bm].wh_size, buttons[bm].wh_size);
 
         if(!winflag) { shipt.draw(drawarea); }
-        fscan(drawarea);
+        
         drawEffects(drawarea);
         if(winflag)
             {
@@ -537,7 +549,6 @@
                 if(mx > buttons[i].x && mx < buttons[i].x+buttons[i].wh_size &&
                    my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
                 }
-            fscan = fieldscan.bind({scanenabled:false});
             }
         clicked = false;
         updateEffects();
@@ -570,26 +581,7 @@
         clicked = true;
         //ReDraw();
         }
-    function GameScan(e)
-        {
-        //console.log("mouseover");
-        var mx = e.pageX-context.offsetLeft;
-        var my = e.pageY-context.offsetTop;
-        if (scannerlvl == 0 || buildmode != "factory") { return; }
-        mx -= field.x_left;
-        my -= field.y_up;
-        if (mx < 0 || mx >= field.wh_size) { fscan = fieldscan.bind({scanenabled:false}); return; }
-        if (my < 0 || my >= field.wh_size) { fscan = fieldscan.bind({scanenabled:false}); return; }
-        var px = Math.floor(mx/field.step);
-        var py = Math.floor(my/field.step);
-        if (field.getItem(px,py) != undefined) { fscan = fieldscan.bind({scanenabled:false}); return; }
-        fscan = fieldscan.bind({scanenabled:true,
-                                x:Math.floor(field.x_left+px*field.step),
-                                y:Math.floor(field.y_up  +py*field.step),
-                                text: "$"+field.getRes(px,py).concentration});
-        }
     context.onclick=GameClick;
-    context.onmousemove=GameScan;
     (function() {
       var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                                   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
