@@ -238,6 +238,26 @@ body
         {
         area.drawImage(boom[8-this.time],this.sx-field.step/2, this.sy-field.step/2, field.step, field.step);
         }
+    var effectBigBoom = Object.create(effect);
+    effectBigBoom.constructor = function(t, sx, sy, radius)
+        {
+        effect.constructor.apply(this, arguments);
+        this.sx = sx;
+        this.sy = sy;
+        this.radius = radius;
+        return this;
+        };
+    effectBigBoom.draw = function(area)
+        {
+        area.globalAlpha=this.time/this.alltime;
+        area.strokeStyle = "#FF0";
+        area.lineWidth=this.radius/4;
+        area.beginPath();
+        area.arc(this.sx,this.sy,this.radius*(1-this.time/this.alltime),0,2*Math.PI);
+        area.stroke();
+        area.globalAlpha=1;
+        }
+    
     function updateEffects()
         {
         effects.forEach(function(elem, index, arr)
@@ -256,6 +276,7 @@ body
             if(effects[i] === undefined) { effects[i] = eff; break; }
             }
         }
+
     
     function endfunction()
         {
@@ -468,7 +489,20 @@ body
         if (near_rad <= radius) { return near_obj; }
         return undefined;
         }
-    
+    field.AoE = function(x, y, radius, dmg)
+        {
+        addEffect(Object.create(effectBigBoom).constructor(25, x, y, radius));
+        for (var px = 0; px < field.size; px++)
+        for (var py = 0; py < field.size; py++)
+            {
+            var currbuild = field.getItem(px,py);
+            if (currbuild == undefined) { continue; }
+            var bx = currbuild.x;
+            var by = currbuild.y;
+            var curr_rad = Math.sqrt((bx-x)*(bx-x)+(by-y)*(by-y));
+            if (curr_rad < radius) { currbuild.hit(dmg); }
+            }
+        }
     function bossturret(x, y)
         {
         this.x = x;
@@ -527,6 +561,7 @@ body
         this.y = Math.round(field.y_up+field.step*(field.size/2));
         this.maxhp = 500;
         this.hp = this.maxhp;
+        this.shootstate = 0;
         this.turrets = [];
         this.turrets[0] = new bossturret(this.x-field.step/4, this.y-field.step/2);
         this.turrets[1] = new bossturret(this.x-field.step/4, this.y+field.step/2);
@@ -539,6 +574,12 @@ body
         }
     boss.prototype.act = function()
         {
+        this.shootstate++;
+        if (this.shootstate > 50)
+            {
+            this.shootstate = 0;
+            field.AoE(this.x-field.step*2, this.y, field.step*2, 30);
+            }
         this.x -= this.vx;
         for (var i in this.turrets)
             {
