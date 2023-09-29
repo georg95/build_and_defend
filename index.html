@@ -44,6 +44,9 @@ body
     bossturretimg.src = "boss_gun1.png";
     var bossimg = new Image();
     bossimg.src = "boss.png";
+    
+    var background = new Image();
+    background.src = "bg.jpg";
     //var laser = new Audio("laser.ogg");
     var mx = 0;
     var my = 0;
@@ -816,8 +819,9 @@ body
     
     ReDraw = function MenuDraw()
         {
-        drawarea.fillStyle="#334";
-        drawarea.fillRect(0,0, context.width, context.height);
+        //drawarea.fillStyle="#334";
+        //drawarea.fillRect(0,0, context.width, context.height);
+        drawarea.drawImage(background, 0, 0, context.width, context.height);
         for(var i = 0; i < menubuttons.length; i++)
             {
             menubuttons[i].draw(drawarea);
@@ -834,8 +838,9 @@ body
         }
     function GameDraw()
         {
-        drawarea.fillStyle="#334";
-        drawarea.fillRect(0,0, context.width, context.height);
+        //drawarea.fillStyle="#334";
+        //drawarea.fillRect(0,0, context.width, context.height);
+        drawarea.drawImage(background, 0, 0, context.width, context.height);
         fscan(drawarea);
         field.draw(drawarea);
             
