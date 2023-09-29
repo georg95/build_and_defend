@@ -174,7 +174,7 @@
         }
     effectBoom.draw = function(area)
         {
-        area.drawImage(boom[8-this.time],this.sx, this.sy, field.step, field.step);
+        area.drawImage(boom[8-this.time],this.sx-field.step/2, this.sy-field.step/2, field.step, field.step);
         }
     var effects = [];
     function updateEffects()
@@ -342,8 +342,8 @@
     bossturret.prototype.drawself = function(area)
         {
         area.fillStyle = "#0F0";
-        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
-        area.drawImage(bossturretimg, this.x, this.y, field.step, field.step);
+        area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.drawImage(bossturretimg, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
     bossturret.prototype.act = function()
         {
@@ -354,8 +354,7 @@
             {
             if(this.shootstate == 0)
                 {
-                addEffect(Object.create(effectBullet).constructor(
-                    10, this.x+field.step/2, this.y+field.step/2, build.x+field.step/2, build.y+field.step/2));
+                addEffect(Object.create(effectBullet).constructor(10, this.x, this.y, build.x, build.y));
                 build.hit(20);
                 this.shootstate = 15;
                 }
@@ -366,11 +365,11 @@
     function boss()
         {
         this.x = Math.round(field.x_left+field.step*(field.size+4));
-        this.y = Math.round(field.y_up+field.step*field.size/2);
+        this.y = Math.round(field.y_up+field.step*(field.size/2));
         this.maxhp = 1000;
         this.hp = this.maxhp;
-        this.leftturret  = new bossturret(this.x, this.y-field.step);
-        this.rightturret = new bossturret(this.x, this.y);
+        this.leftturret  = new bossturret(this.x, this.y-field.step/2);
+        this.rightturret = new bossturret(this.x, this.y+field.step/2);
         addEnemy(this.leftturret);
         addEnemy(this.rightturret);
         this.buildstate = 500;
@@ -411,8 +410,8 @@
         }
     function ship(px, py)
         {
-        this.sx = Math.round(field.x_left+field.step*(field.size+px));
-        this.sy = Math.round(field.y_up+field.step*py);
+        this.sx = Math.round(field.x_left+field.step*(field.size+px+0.5));
+        this.sy = Math.round(field.y_up+field.step*(py+0.5));
         this.x = this.sx;
         this.y = this.sy;
         this.attackTime = 0;
@@ -432,8 +431,7 @@
             {
             if(this.shootstate == 0)
                 {
-                addEffect(Object.create(effectBullet).constructor(
-                    10, this.x+field.step/2, this.y+field.step/2, build.x+field.step/2, build.y+field.step/2));
+                addEffect(Object.create(effectBullet).constructor(10, this.x, this.y, build.x, build.y));
                 build.hit(30);
                 this.shootstate = 15;
                 }
@@ -443,7 +441,7 @@
             this.x -= this.vx;
             }
         if(this.shootstate > 0) { this.shootstate--; }
-        if(this.x <= field.x_left)
+        if(this.x-field.step/2 <= field.x_left)
             {
             this.attackTime = 0;
             this.act = this.goback;
@@ -471,8 +469,8 @@
     ship.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
-        area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
-        area.drawImage(ship1, this.x, this.y, field.step, field.step);
+        area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4);
+        area.drawImage(ship1, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
     var enemies = [];
     function addEnemy(en)
@@ -497,8 +495,8 @@
     
     function wall(px, py)
         {
-        this.x = Math.round(field.x_left+px*field.step);
-        this.y = Math.round(field.y_up  +py*field.step);
+        this.x = Math.round(field.x_left+(px+0.5)*field.step);
+        this.y = Math.round(field.y_up  +(py+0.5)*field.step);
         this.maxhp = 250;
         this.hp = this.maxhp;
         this.isalive = true;
@@ -512,8 +510,8 @@
     wall.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
-        if(this.hp!=this.maxhp) { area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4); }
-        area.drawImage(wallimg, this.x, this.y, field.step, field.step);
+        if(this.hp!=this.maxhp) { area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4); }
+        area.drawImage(wallimg, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
     wall.prototype.hit = function(damage)
         {
@@ -523,8 +521,8 @@
     wall.prototype.act = function () {;}
     function factory(px, py)
         {
-        this.x = Math.round(field.x_left+px*field.step);
-        this.y = Math.round(field.y_up  +py*field.step);
+        this.x = Math.round(field.x_left+(px+0.5)*field.step);
+        this.y = Math.round(field.y_up  +(py+0.5)*field.step);
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.isalive = true;
@@ -540,8 +538,8 @@
     factory.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
-        if(this.hp!=this.maxhp) { area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4); }
-        area.drawImage(drill, this.x, this.y, field.step, field.step);
+        if(this.hp!=this.maxhp) { area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4); }
+        area.drawImage(drill, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
     factory.prototype.hit = function(damage)
         {
@@ -556,14 +554,14 @@
             gold+=this.production;
             addEffect(Object.create(effectFlowText).constructor(
                 20, "$"+this.production, "bold 12px Arial", "255,255,0",
-                this.x+field.step/2, this.y, -field.step/2));
+                this.x, this.y-field.step/2, -field.step/2));
             this.prodStage = 0;
             }
         }
     function turret(px, py)
         {
-        this.x = Math.round(field.x_left+px*field.step);
-        this.y = Math.round(field.y_up  +py*field.step);
+        this.x = Math.round(field.x_left+(px+0.5)*field.step);
+        this.y = Math.round(field.y_up  +(py+0.5)*field.step);
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.angle = 0;
@@ -584,8 +582,8 @@
     turret.prototype.draw = function(area)
         {
         area.fillStyle = "#0F0";
-        if(this.hp!=this.maxhp) { area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4); }
-        area.translate(Math.round(this.x+field.step/2), Math.round(this.y+field.step/2));
+        if(this.hp!=this.maxhp) { area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4); }
+        area.translate(Math.round(this.x), Math.round(this.y));
         area.rotate(this.angle);
         area.drawImage(turret1, -Math.round(field.step/2), -Math.round(field.step/2), field.step, field.step);
         area.resetTransform();
@@ -605,8 +603,7 @@
             {
             if(isscope)
                 {
-                addEffect(Object.create(effectLaser).constructor(
-                    20, this.x+field.step/2, this.y+field.step/2, enemy.x+field.step/2, enemy.y+field.step/2));
+                addEffect(Object.create(effectLaser).constructor(20, this.x, this.y, enemy.x, enemy.y));
                 enemy.hit(3);
                 this.shootstate=20;
                 }
