@@ -10,16 +10,47 @@ body
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
     -ms-user-select: none;      /* IE 10+ */
-    user-select: none;          /* Likely future */      
+    user-select: none;          /* Likely future */
+    background: #000;
+    }
+html, body
+    {
+    margin:0px;
+    padding:0px;
+    overflow: hidden;
+    }
+canvas
+    {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: auto;
+    margin-top: auto;
+    display: block;
     }
 </style>
 <body>
-
 <canvas height='720' width='1280' id='game'>Bad browser</canvas>
-
 <script>
     'use strict'
     var context = document.getElementById('game');
+    function gameResize()
+        {
+        if (window.innerWidth/window.innerHeight > 1280/720)
+            {
+            context.height = window.innerHeight;
+            context.width = 1280*context.height/720;
+            }
+        else
+            {
+            context.width = window.innerWidth;
+            context.height = 720*context.width/1280;
+            }
+        }
+    gameResize();
     var drawarea = context.getContext('2d');
     var boom=[];
     for(var i = 0; i < 9; i++)
@@ -1326,8 +1357,6 @@ body
     })();
     
     background.onload = function () { requestAnimationFrame(GameLoop); }
-</script><br/>
-<table cellpadding="0" cellspacing="0" border="0" style="line-height:10px;">
-<tr><td colspan="2" style="padding:0;"><a href="http://www.24log.de" target="_blank"><img border="0" src="http://counter.24log.ru/buttons/cl4/45-0.gif" alt="html counter" title="" style="margin:0;padding:0;" /></a><a href="http://www.24log.ru" target="_blank"><img border="0" src="http://counter.24log.ru/count4_252334_45_1_6.pcx" alt="счетчик посетителей сайта" title="счетчик для сайта" style="margin:0;padding:0;" /></a></td></tr></table>
+</script>
 </body>
 </html>
