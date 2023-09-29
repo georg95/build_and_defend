@@ -32,6 +32,8 @@ body
     sellimg.src = "sell.png";
     var turret1 = new Image();
     turret1.src = "turret.png";
+    var turret2 = new Image();
+    turret2.src = "turret2.png";
     var ship1 = new Image();
     ship1.src = "enemy.png";
     var scanner1 = new Image();
@@ -71,6 +73,7 @@ body
     var scannerlvl;
     var button_big_radius = 67*context.height/720;
     var button_small_radius = 60*context.height/720;
+    var actbutton_small_radius = 26*context.height/720;
     var waittime;
     var curr_wait;
     var gold;
@@ -304,70 +307,49 @@ body
         //drawarea.globalAlpha=1;
         }
     var fscan = fieldscan.bind({scanenabled:false});
-    var pausebutton =
+    function actbutton(cx, cy, img)
         {
-        x: margin,
-        y: 5,
-        wh_size: margin-10,
-        img: pauseimg,
-        click: function(x,y)
-            {
-            var dx = x-this.x;
-            var dy = y-this.y;
-            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
-            paused = !paused;
-            if(paused) { document.title=doctitle+" [paused]"; this.img = playimg; }
-            else       { document.title=doctitle;             this.img = pauseimg; }
-            return true;
-            },
-        draw: function(area)
-            {
-            area.drawImage(this.img, this.x, this.y, this.wh_size, this.wh_size);
-            }
-        };
-    var replaybutton =
+        this.x = cx;
+        this.y = cy;
+        this.img = img;
+        this.wh_size2 = actbutton_small_radius/2;
+        }
+    actbutton.prototype.act = function() { console.warn("actbutton.act not implemented"); }
+    actbutton.prototype.click = function(x,y)
         {
-        x: pausebutton.x+pausebutton.wh_size+10,
-        y: pausebutton.y,
-        wh_size: pausebutton.wh_size,
-        click: function(x,y)
+        var dx = x-this.x;
+        var dy = y-this.y;
+        if (dx*dx+dy*dy < actbutton_small_radius*actbutton_small_radius)
             {
-            var dx = x-this.x;
-            var dy = y-this.y;
-            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
-            setdefaults();
-            return true;
-            },
-        draw: function(area)
-            {
-            area.drawImage(replayimg, this.x, this.y, this.wh_size, this.wh_size);
+            this.act();
+            return true; 
             }
-        };
-    var menubutton =
+        return false;
+        }
+    actbutton.prototype.draw = function(area)
         {
-        x: replaybutton.x+replaybutton.wh_size+10,
-        y: replaybutton.y,
-        wh_size: replaybutton.wh_size,
-        img: pauseimg,
-        click: function(x,y)
-            {
-            var dx = x-this.x;
-            var dy = y-this.y;
-            if(dx<0 || dx>this.wh_size || dy<0 || dy>this.wh_size) { return false; }
-            ReDraw = MenuDraw;
-            Update = MenuUpdate;
-            return true;
-            },
-        draw: function(area)
-            {
-            area.drawImage(menuimg, this.x, this.y, this.wh_size, this.wh_size);
-            }
-        };
+        area.drawImage(this.img, this.x-this.wh_size2, this.y-this.wh_size2, this.wh_size2*2, this.wh_size2*2);
+        }
+    var pausebutton = new actbutton(1130*context.width/1280, 77*context.height/720, pauseimg);
+    pausebutton.act = function()
+        {
+        paused = !paused;
+        if(paused) { document.title=doctitle+" [paused]"; this.img = playimg; }
+        else       { document.title=doctitle;             this.img = pauseimg; }
+        }
+    var replaybutton = new actbutton(1160*context.width/1280, 127*context.height/720, replayimg);
+    replaybutton.act = setdefaults;
+    var menubutton = new actbutton(1100*context.width/1280, 127*context.height/720, menuimg);
+    menubutton.act = function()
+        {
+        ReDraw = MenuDraw;
+        Update = MenuUpdate;
+        }
     var actionbuttons = [replaybutton, pausebutton, menubutton];
     var turretbutton = {};
     turretbutton.x = 150*context.width/1280;
     turretbutton.y = 197*context.height/720;
-    turretbutton.img = turret1;
+    turretbutton.img = turret2;
     turretbutton.click = function() { buildmode = "turret"; }
     turretbutton.cost = function() { return turretcost; }
     var factorybutton = {};
@@ -655,7 +637,9 @@ body
     wall.prototype.draw = function(area)
         {
         area.fillStyle = "#00F";
+        area.globalAlpha=0.5;
         area.drawImage(wallimg, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
+        area.globalAlpha=1;
         area.fillRect(this.x-field.step/2, this.y-field.step/2, field.step*this.hp/this.maxhp, 4);
         }
     wall.prototype.hit = function(damage)
@@ -893,7 +877,7 @@ body
                 }
             else if (buildmode === "wall" && !item.haswall)
                 {
-                drawarea.globalAlpha = 0.5;
+                drawarea.globalAlpha = 0.3;
                 drawarea.drawImage(wallimg, this.x_left+sx*this.step, this.y_up+sy*this.step, this.step, this.step);
                 drawarea.globalAlpha = 1;
                 }
@@ -1048,10 +1032,10 @@ body
         field.draw(drawarea);
         for(var i in actionbuttons) { actionbuttons[i].draw(drawarea); }
         drawarea.font = "bold "+24*context.height/450+"px courier";
-        drawarea.textAlign = "left";
-        drawarea.textBaseline = "top";
-        drawarea.fillStyle = "#DD2";
-        drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
+        drawarea.textAlign = "center";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle = "#E6E6E6";
+        drawarea.fillText(""+Math.floor(gold), 148*context.width/1280, 79*context.height/720);
         
         drawarea.font = "bold "+11*context.height/450+"px Arial";
         drawarea.textAlign = "center";
@@ -1059,13 +1043,13 @@ body
         drawarea.fillStyle = "#E6E6E6";    
         for (var i = 0; i < buttons.length; i++)
             {
-            var wh_size2 = button_small_radius;
+            var wh_size2 = button_small_radius/Math.SQRT2;
             drawarea.drawImage(buttons[i].img, buttons[i].x-wh_size2, buttons[i].y-wh_size2,
                                wh_size2*2, wh_size2*2);
             if (buttons[i].cost() != undefined)
             drawarea.fillText("$"+buttons[i].cost(),
                               buttons[i].x,
-                              buttons[i].y);
+                              buttons[i].y-50*context.height/720);
             }
         var bm = 1;
         if (buildmode == "turret")  { bm = 0; }
