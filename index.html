@@ -29,6 +29,10 @@
     scanner1.src = "scanner.png";
     var wallimg = new Image();
     wallimg.src = "wall.png";
+    var bossturretimg = new Image();
+    bossturretimg.src = "boss_gun1.png";
+    var bossimg = new Image();
+    bossimg.src = "boss.png";
     //var laser = new Audio("laser.ogg");
     var mx = 0;
     var my = 0;
@@ -334,7 +338,8 @@
             addEffect(Object.create(effectBoom).constructor(this.x, this.y));
             }
         }
-    bossturret.prototype.draw = function(area)
+    bossturret.prototype.draw = function(area) {;}
+    bossturret.prototype.drawself = function(area)
         {
         area.fillStyle = "#0F0";
         area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
@@ -364,8 +369,46 @@
         this.y = Math.round(field.y_up+field.step*field.size/2);
         this.maxhp = 1000;
         this.hp = this.maxhp;
+        this.leftturret  = new bossturret(this.x, this.y-field.step);
+        this.rightturret = new bossturret(this.x, this.y);
+        addEnemy(this.leftturret);
+        addEnemy(this.rightturret);
+        this.buildstate = 500;
+        this.isalive = true;
         }
-    
+    boss.prototype.act = function()
+        {
+        this.x -= 1;
+        if (this.leftturret  != undefined)
+            {
+            this.leftturret.move(-1, 0);
+            if(this.leftturret.isalive == false)  { this.leftturret  = undefined; }
+            }
+        if (this.rightturret != undefined)
+            {
+            this.rightturret.move(-1, 0);
+            if(this.rightturret.isalive == false) { this.rightturret = undefined; }
+            }
+        }
+    boss.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        area.fillRect(this.x-field.step, this.y-field.step-4, Math.round(2*field.step*this.hp/this.maxhp), 4);
+        area.drawImage(bossimg, this.x-field.step, this.y-field.step, 2*field.step, 2*field.step);
+        if (this.leftturret  != undefined) { this.leftturret.drawself(area); }
+        if (this.rightturret != undefined) { this.rightturret.drawself(area); }
+        }
+    boss.prototype.hit = function(damage)
+        {
+        if (this.isalive === false) { return; }
+        this.hp-=damage;
+        if (this.hp<=0)
+            {
+            this.hp = 0;
+            this.isalive = false;
+            addEffect(Object.create(effectBoom).constructor(this.x, this.y));
+            }
+        }
     function ship(px, py)
         {
         this.sx = Math.round(field.x_left+field.step*(field.size+px));
@@ -439,6 +482,7 @@
             if (enemies[i] === undefined) { enemies[i] = en; return; }
             }
         }
+    addEnemy(new boss());
     function getNearEnemy(x,y,radius)
         {
         if (winflag) { return undefined; }
@@ -731,7 +775,7 @@
         drawarea.strokeStyle="#F00";
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
-
+        
         if(!winflag)
             {
             for (var i = 0; i < enemies.length; i++)
