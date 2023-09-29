@@ -746,7 +746,8 @@ body
             {
             if(isscope)
                 {
-                addEffect(Object.create(effectLaser).constructor(20, this.x, this.y, enemy.x, enemy.y));
+                addEffect(Object.create(effectLaser).constructor(20,
+                    this.x+field.step/2*Math.cos(this.angle), this.y+field.step/2*Math.sin(this.angle), enemy.x, enemy.y));
                 enemy.hit(3);
                 this.shootstate=20;
                 }
