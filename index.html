@@ -28,7 +28,9 @@
     var scanner1 = new Image();
     scanner1.src = "scanner.png";
     //var laser = new Audio("laser.ogg");
-    
+    var mx = 0;
+    var my = 0;
+    var clicked = false;
     
     var buildmode = "factory";
     var margin = 20;
@@ -38,6 +40,34 @@
     var scannerlvl = 0;
     
     
+    var soundeffect =
+        {
+        lasersounds:[],
+        boomsounds:[],
+        addLaser: function()
+            {
+            for(var i = 0; i < this.lasersounds.length; i++)
+                {
+                var cur_snd = this.lasersounds[i];
+                if(cur_snd.paused) { cur_snd.play(); break; }
+                }
+            },
+        addBoom: function()
+            {
+            for(var i = 0; i < this.boomsounds.length; i++)
+                {
+                var cur_snd = this.boomsounds[i];
+                if(cur_snd.paused) { cur_snd.play(); break; }
+                }
+            }
+        };
+    for(var i = 0; i < 5; i++)
+        {
+        soundeffect.lasersounds[i] = new Audio("laser.ogg");
+        soundeffect.lasersounds[i].volume = 0.2;
+        soundeffect.boomsounds[i] = new Audio("boom.ogg");
+        soundeffect.boomsounds[i].volume = 0.2;
+        }
     var effect =
         {
         alive:true,
@@ -53,6 +83,7 @@
         this.sy = sy;
         this.fx = fx;
         this.fy = fy;
+        soundeffect.addLaser();
         return this;
         };
     effectLaser.draw = function(area)
@@ -70,6 +101,7 @@
         effect.constructor.call(this, 8);
         this.sx = sx;
         this.sy = sy;
+        soundeffect.addBoom();
         return this;
         }
     effectBoom.draw = function(area)
@@ -263,7 +295,7 @@
         area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
         area.drawImage(ship1, this.x, this.y, field.step, field.step);
         }
-    var shipt = new ship(2,3);
+    var shipt = new ship(1,3);
     function getNearEnemy(x,y,radius)
         {
         if (winflag) { return; }
@@ -303,8 +335,6 @@
         }
     function turret(px, py)
         {
-        this.shootlaser = new Audio("laser.ogg");
-        this.shootlaser.volume = 0.2;
         this.x = Math.round(field.x_left+px*field.step);
         this.y = Math.round(field.y_up  +py*field.step);
         this.maxhp = 100;
@@ -348,8 +378,6 @@
             {
             if(isscope)
                 {
-                this.shootlaser.currentTime=0.0;
-                this.shootlaser.play();
                 addEffect(Object.create(effectLaser).constructor(
                     20, this.x+field.step/2, this.y+field.step/2, enemy.x+field.step/2, enemy.y+field.step/2));
                 enemy.hit(10);
@@ -463,6 +491,17 @@
         }
     function GameUpdate()
         {
+        if (clicked)
+            {
+            field.click(mx, my);
+            for (var i = 0; i < buttons.length; i++)
+                {
+                if(mx > buttons[i].x && mx < buttons[i].x+buttons[i].wh_size &&
+                   my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
+                }
+            fscan = fieldscan.bind({scanenabled:false});
+            }
+        clicked = false;
         updateEffects();
         var winner = true;
         for(var x = 0; x < field.size; x++)
@@ -477,24 +516,20 @@
         if(winflag) { return; }
         shipt.act();
         if (!shipt.isalive) { shipt = new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)); }
+        
         }
     function GameLoop()
         {
         GameUpdate();
         ReDraw();
+        setTimeout("requestAnimationFrame(GameLoop);",20);
         }
     function GameClick(e)
         {
-        console.log("Click ("+e.pageX+", "+e.pageY+")");
-        var mx = e.pageX-context.offsetLeft;
-        var my = e.pageY-context.offsetTop;
-        field.click(mx, my);
-        for (var i = 0; i < buttons.length; i++)
-            {
-            if(mx > buttons[i].x && mx < buttons[i].x+buttons[i].wh_size &&
-               my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
-            }
-        fscan = fieldscan.bind({scanenabled:false});
+        //console.log("Click ("+e.pageX+", "+e.pageY+")");
+        mx = e.pageX-context.offsetLeft;
+        my = e.pageY-context.offsetTop;
+        clicked = true;
         //ReDraw();
         }
     function GameScan(e)
@@ -517,7 +552,12 @@
         }
     context.onclick=GameClick;
     context.onmousemove=GameScan;
-    setInterval(GameLoop, 30);
+    (function() {
+      var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
+                                  window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+      window.requestAnimationFrame = requestAnimationFrame;
+    })();
+    requestAnimationFrame(GameLoop);
 </script><br/>
 <table cellpadding="0" cellspacing="0" border="0" style="line-height:10px;">
 <tr><td colspan="2" style="padding:0;"><a href="http://www.24log.de" target="_blank"><img border="0" src="http://counter.24log.ru/buttons/cl4/45-0.gif" alt="html counter" title="" style="margin:0;padding:0;" /></a><a href="http://www.24log.ru" target="_blank"><img border="0" src="http://counter.24log.ru/count4_252334_45_1_6.pcx" alt="счетчик посетителей сайта" title="счетчик для сайта" style="margin:0;padding:0;" /></a></td></tr></table>
