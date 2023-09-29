@@ -27,6 +27,8 @@
     ship1.src = "ship1.png";
     var scanner1 = new Image();
     scanner1.src = "scanner.png";
+    //var laser = new Audio("laser.ogg");
+    
     
     var buildmode = "factory";
     var margin = 20;
@@ -72,8 +74,6 @@
         }
     effectBoom.draw = function(area)
         {
-        //var frame = 8-Math.floor(9*this.time/(this.alltime+1));
-        console.log("boom!"+(8-this.time));
         area.drawImage(boom[8-this.time],this.sx, this.sy, field.step, field.step);
         }
     var effects = [];
@@ -89,7 +89,7 @@
         }
     function addEffect(eff)
         {
-        console.log("add effect(" + effects.length+")");
+        //console.log("add effect(" + effects.length+")");
         for(var i = 0; i <= effects.length; i++) // <= is not error, in case if array is full
             {
             if(effects[i] === undefined) { effects[i] = eff; break; }
@@ -303,6 +303,8 @@
         }
     function turret(px, py)
         {
+        this.shootlaser = new Audio("laser.ogg");
+        this.shootlaser.volume = 0.2;
         this.x = Math.round(field.x_left+px*field.step);
         this.y = Math.round(field.y_up  +py*field.step);
         this.maxhp = 100;
@@ -346,6 +348,8 @@
             {
             if(isscope)
                 {
+                this.shootlaser.currentTime=0.0;
+                this.shootlaser.play();
                 addEffect(Object.create(effectLaser).constructor(
                     20, this.x+field.step/2, this.y+field.step/2, enemy.x+field.step/2, enemy.y+field.step/2));
                 enemy.hit(10);
