@@ -5,7 +5,7 @@
 <meta charset='utf-8'>
 </head>
 <style>
-body 
+body
     {
     -webkit-user-select: none;  /* Chrome all / Safari all */
     -moz-user-select: none;     /* Firefox all */
@@ -84,7 +84,7 @@ canvas
     replayimg.src = "retry.png";
     var menuimg = new Image();
     menuimg.src = "menu.png"
-    
+
     var background = new Image();
     background.src = "bg.png";
     var background2 = new Image();
@@ -118,7 +118,7 @@ canvas
     var paused = false;
     var doctitle = "B&D";
     var wave = 1;
-    
+
     var soundeffect =
         {
         lasersounds:[],
@@ -297,7 +297,7 @@ canvas
         area.stroke();
         area.globalAlpha=1;
         }
-    
+
     function updateEffects()
         {
         effects.forEach(function(elem, index, arr)
@@ -317,7 +317,7 @@ canvas
             }
         }
 
-    
+
     function endfunction()
         {
         this.state = 0;
@@ -330,7 +330,7 @@ canvas
         drawarea.strokeStyle="#000";
         drawarea.lineWidth=6*context.height/720;
         drawarea.strokeRect (x-w/2, y-h/2, w, h);
-        
+
         var stats = Object.keys(gamestats).length;
         drawarea.font = "bold "+12*context.height/720+"px sans-serif";
         drawarea.textAlign = "left";
@@ -341,7 +341,7 @@ canvas
         var ys = y-h/2+strh/2;
         for (var key in gamestats)
             {
-            drawarea.fillText(""+gamestats[key].text+": "+gamestats[key].value, x-w*2/5, ys+i*strh); 
+            drawarea.fillText(""+gamestats[key].text+": "+gamestats[key].value, x-w*2/5, ys+i*strh);
             i++;
             }
         }
@@ -352,10 +352,10 @@ canvas
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
         drawarea.fillStyle="#FFF";
-        
+
         var rectw = context.width/4;
         var recth = context.height/4;
-        
+
         drawarea.translate(context.width/2, context.height/2-recth);
         drawarea.rotate(Math.cos(this.state)/5);
         drawarea.fillText("YOU WIN", 0, 0);
@@ -374,7 +374,7 @@ canvas
         drawarea.fillText("YOU LOSE", context.width/2, context.height/2);
         }
     var endfunc = new endfunction();
-    
+
     function switchlose ()
         {
         for (var key in gamestats) { Object.defineProperty(gamestats[key], "value", { set:function() {;} } ); }
@@ -388,7 +388,7 @@ canvas
             }
         endfunc.act = endfunc.win; endflag = true; winflag = true;
         }
-    
+
     function fieldscan(drawarea)
         {
         if (this.scanenabled === false) { return; }
@@ -402,7 +402,7 @@ canvas
             if(valuable >= 7 && valuable < 10) { drawarea.fillStyle="#FFE673"; }
             if(valuable >= 10 && valuable < 13) { drawarea.fillStyle="#FFE673"; }
             if(valuable >= 13) { drawarea.fillStyle="#6EE768"; }
-            
+
             drawarea.fillRect(field.x_left+x*field.step+2, field.y_up+y*field.step+2, field.step-4, field.step-4);
             }
         drawarea.globalAlpha=1;
@@ -423,7 +423,7 @@ canvas
         if (dx*dx+dy*dy < actbutton_small_radius*actbutton_small_radius)
             {
             this.act();
-            return true; 
+            return true;
             }
         return false;
         }
@@ -471,7 +471,7 @@ canvas
     sellbutton.img = sellimg;
     sellbutton.click = function() { buildmode = "sell"; }
     sellbutton.cost = function() { return undefined; }
-    
+
     var scannerbutton =
         {
         x: 150*context.width/1280,
@@ -479,7 +479,7 @@ canvas
         img: scanner1,
         click: function()
             {
-            
+
             if (gold < scannercost) { return; }
             gold -= scannercost;
             scannercost+=50;
@@ -489,10 +489,10 @@ canvas
             scannerlvl++;
             },
         cost: function() { return scannercost; }
-        }    
+        }
     var buttons = [turretbutton, factorybutton, wallbutton, sellbutton, scannerbutton];
-    
-    
+
+
     field.size = 10;
     field.items = [];
     field.res = [];
@@ -510,7 +510,7 @@ canvas
     field.y_up   = context.height - field.wh_size - margin;
     field.x_left = Math.round(context.width/2 - field.wh_size/2);
     field.step = field.wh_size/field.size;
-    
+
 
     function getNearBuilding(x,y,radius)
         {
@@ -594,7 +594,7 @@ canvas
             }
         if(this.shootstate > 0) { this.shootstate--; }
         }
-    
+
     function boss()
         {
         this.x = Math.round(field.x_left+field.step*(field.size+4));
@@ -669,7 +669,7 @@ canvas
     ship.prototype.attack = function()
         {
         this.attackTime++;
-        
+
         var build = getNearBuilding(this.x, this.y, 80*context.height/450);
         if (build != undefined)
             {
@@ -716,7 +716,7 @@ canvas
         area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4);
         area.drawImage(ship1, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
         }
-    
+
     function addEnemy(en)
         {
         for (var i = 0; i <= enemies.length; i++)
@@ -735,7 +735,7 @@ canvas
             }
         return undefined;
         }
-    
+
     function wall(px, py)
         {
         this.x = Math.round(field.x_left+(px+0.5)*field.step);
@@ -866,7 +866,7 @@ canvas
         if(this.angle < -Math.PI) { this.angle+=2*Math.PI; }
         var enemy = getNearEnemy(this.x, this.y, 200*context.height/450)
         if(enemy == undefined) { this.angle+=0.1; return; }
-        
+
         var eangle = Math.atan2(enemy.y-this.y, enemy.x-this.x);
         var isscope = true;
         if(eangle - this.angle >  0.12) { this.angle+=0.1; isscope = false; }
@@ -877,7 +877,7 @@ canvas
                 {
                 addEffect(Object.create(effectLaser).constructor(20,
                     this.x+field.step/2*Math.cos(this.angle), this.y+field.step/2*Math.sin(this.angle), enemy.x, enemy.y));
-                enemy.hit(3);
+                enemy.hit(4);
                 this.shootstate=20;
                 }
             }
@@ -934,7 +934,7 @@ canvas
         wallcost = 60;
         scannercost = 50;
         scannerlvl = 0;
-        waittime = 700
+        waittime = 900
         curr_wait = waittime;
         gold = 120;
         endflag = false;
@@ -1079,9 +1079,9 @@ canvas
     function HelpDraw()
         {
         DrawBg(background);
-        
+
         var helpdesk = [{img:drill,    help:{"en":"Add from 1 to 14 per constant time",
-                                            "ru":"Добавляет от 1 до 14 за единицу времени"}}, 
+                                            "ru":"Добавляет от 1 до 14 за единицу времени"}},
                         {img:turret1,  help:{"en":"Strike enemies: flights and boss",
                                             "ru":"Атакует врагов: самолеты и босса"}},
                         {img:wallimg,  help:{"en":"Protect other buildings, 2.5 times more stronger",
@@ -1143,7 +1143,7 @@ canvas
     menubuttons[0] = new menuButton(2, "PLAY", function()  {ReDraw = GameDraw;  Update=GameUpdate;});
     menubuttons[1] = new menuButton(3, "HELP", function()  {ReDraw = HelpDraw;  Update=HelpUpdate;});
     menubuttons[2] = new menuButton(4, "ABOUT", function() {ReDraw = AboutDraw; Update=AboutUpdate;});
-    
+
     function MenuDraw()
         {
         //drawarea.fillStyle="#334";
@@ -1178,7 +1178,7 @@ canvas
         drawarea.textBaseline = "middle";
         drawarea.fillStyle = "#E6E6E6";
         drawarea.fillText(""+Math.floor(gold), 148*context.width/1280, 79*context.height/720);
-        
+
         drawarea.font = "bold "+11*context.height/450+"px Arial";
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
@@ -1213,7 +1213,7 @@ canvas
         drawarea.closePath();
         drawarea.lineWidth = 6*context.height/720;
         drawarea.stroke();
-        
+
 
         for (var i = 0; i < enemies.length; i++)
             {
@@ -1223,7 +1223,7 @@ canvas
         drawEffects(drawarea);
         if(endflag)
             {
-            endfunc.act(); 
+            endfunc.act();
             //return;
             }
         }
@@ -1267,7 +1267,7 @@ canvas
             if(!curritem.isalive || (boom && loseflag)) { curritem.destroy(); field.setItem(x,y, undefined); boom = false; }
             else { curritem.act(); }
             }
-        
+
         curr_wait--;
         if(curr_wait == 0)
             {
@@ -1359,7 +1359,7 @@ canvas
                                   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
       window.requestAnimationFrame = requestAnimationFrame;
     })();
-    
+
     background.onload = function () { requestAnimationFrame(GameLoop); }
 </script>
 </body>
