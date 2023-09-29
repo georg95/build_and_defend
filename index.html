@@ -738,7 +738,10 @@ body
     console.log('canvas='+drawarea);
     //field.setItem(3, 7, "factory");
 
-
+    function DrawBg()
+        {
+        drawarea.drawImage(background, 0, 0, context.width, context.height);
+        }
 
     field.draw = function (drawarea)
         {
@@ -832,22 +835,53 @@ body
         area.fillStyle = "rgba(200,200,200,"+this.alpha+")";
         area.fillText(this.text, context.width/2, this.centery);
         }
+    var tomenubutton = new menuButton(7, "BACK", function() { ReDraw = MenuDraw; Update=MenuUpdate; });
+    function HelpDraw()
+        {
+        DrawBg();
+        
+        var helpdesk = [{img:drill,    help:"Add from $1 to $14 per constant time"}, 
+                        {img:turret1,  help:"Strike enemies: flights and boss"},
+                        {img:wallimg,  help:"Protect other buildings, 2.5 times more stronger"},
+                        {img:ship1,    help:"They will try to destroy your base"},
+                        {img:bossimg,  help:"Appears after 10 flights. If destroyed, you WIN. If cross left border, you LOSE"},
+                        {img:sellimg,  help:"Buildings sell mode"},
+                        {img:scanner1, help:"For 30 seconds show rich(green) and poor(red) places to build factory"},];
+        var iconsize = (tomenubutton.centery-tomenubutton.height/2-margin*2)/helpdesk.length;
+        drawarea.font = "bold 14px Arial";
+        drawarea.textAlign = "left";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle = "#FFF";
+        for (var i in helpdesk)
+            {
+            drawarea.drawImage(helpdesk[i].img, margin, margin+iconsize*i, iconsize, iconsize);
+            drawarea.fillText(helpdesk[i].help, margin*2+iconsize, margin+iconsize*i+iconsize/2);
+            }
+        tomenubutton.draw(drawarea);
+        }
+    function HelpUpdate()
+        {
+        tomenubutton.update();
+        if(mousemoved) { tomenubutton.hover(mx, my); }
+        if(clicked)    { if(tomenubutton.click(mx, my)) { clicked=false; } }
+        }
     var menubuttons=[];
     menubuttons[0] = new menuButton(2, "PLAY", function() {ReDraw = GameDraw; Update=GameUpdate;});
-    menubuttons[1] = new menuButton(3, "HELP", function() {;});
+    menubuttons[1] = new menuButton(3, "HELP", function() {ReDraw = HelpDraw; Update=HelpUpdate;});
     menubuttons[2] = new menuButton(4, "ABOUT", function() {;});
     
-    ReDraw = function MenuDraw()
+    
+    function MenuDraw()
         {
         //drawarea.fillStyle="#334";
         //drawarea.fillRect(0,0, context.width, context.height);
-        drawarea.drawImage(background, 0, 0, context.width, context.height);
+        DrawBg();
         for(var i = 0; i < menubuttons.length; i++)
             {
             menubuttons[i].draw(drawarea);
             }
         }
-    Update = function MenuUpdate()
+    function MenuUpdate()
         {
         for(var i = 0; i < menubuttons.length; i++)
             {
@@ -856,11 +890,13 @@ body
             if(clicked)    { if(menubuttons[i].click(mx, my)) { clicked=false; } }
             }
         }
+    ReDraw =MenuDraw;
+    Update=MenuUpdate;
     function GameDraw()
         {
         //drawarea.fillStyle="#334";
         //drawarea.fillRect(0,0, context.width, context.height);
-        drawarea.drawImage(background, 0, 0, context.width, context.height);
+        DrawBg();
         fscan(drawarea);
         field.draw(drawarea);
             
