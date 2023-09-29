@@ -63,18 +63,18 @@
         }
 
     var effectBoom = Object.create(effect);
-    effectBoom.constructor = function(t, sx, sy)
+    effectBoom.constructor = function(sx, sy)
         {
-        effect.constructor.apply(this, arguments);
+        effect.constructor.call(this, 8);
         this.sx = sx;
         this.sy = sy;
         return this;
         }
     effectBoom.draw = function(area)
         {
-        console.log("boom!");
-        var frame = 8-Math.floor(9*this.time/this.alltime);
-        area.drawImage(boom[frame],this.sx, this.sy, field.step, field.step);
+        //var frame = 8-Math.floor(9*this.time/(this.alltime+1));
+        console.log("boom!"+(8-this.time));
+        area.drawImage(boom[8-this.time],this.sx, this.sy, field.step, field.step);
         }
     var effects = [];
     function updateEffects()
@@ -253,7 +253,7 @@
             {
             this.hp = 0;
             this.isalive = false;
-            addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
+            addEffect(Object.create(effectBoom).constructor(this.x, this.y));
             this.act = this.death;
             }
         }
@@ -284,7 +284,7 @@
     factory.prototype.destroy = function()
         {
         factorycost-=5;
-        addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
+        addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     factory.prototype.draw = function(area)
         {
@@ -315,7 +315,7 @@
     turret.prototype.destroy = function()
         {
         turretcost-=10;
-        addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
+        addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     turret.prototype.hit = function(damage)
         {
