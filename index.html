@@ -951,7 +951,7 @@ body
         //ReDraw();
         }
     context.onmousemove=function(e) { mx = e.pageX-context.offsetLeft; my = e.pageY-context.offsetTop; mousemoved = true; }
-    context.onclick=GameClick;
+    context.onmousedown=GameClick;
     (function() {
       var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame ||
                                   window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
