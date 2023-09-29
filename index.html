@@ -524,7 +524,7 @@ canvas
             var bx = currbuild.x;
             var by = currbuild.y;
             var curr_rad = Math.sqrt((bx-x)*(bx-x)+(by-y)*(by-y));
-            if (curr_rad < near_rad) { near_rad = curr_rad; near_obj = currbuild.haswall || currbuild; }
+            if (curr_rad < near_rad) { near_rad = curr_rad; near_obj = currbuild; }
             }
         if (near_rad <= radius) { return near_obj; }
         return undefined;
@@ -754,6 +754,7 @@ canvas
         {
         wallcost-=15;
         gamestats.builds.value++;
+        this.isalive = false;
         addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     wall.prototype.draw = function(area)
@@ -802,6 +803,7 @@ canvas
         }
     factory.prototype.hit = function(damage)
         {
+        if(this.haswall) { this.haswall.hit(damage); return false; }
         this.hp-=damage;
         if (this.hp<=0) { this.hp = 0; this.isalive = false; }
         }
@@ -844,6 +846,7 @@ canvas
         }
     turret.prototype.hit = function(damage)
         {
+        if(this.haswall) { this.haswall.hit(damage); return false; }
         this.hp-=damage;
         if (this.hp<=0) { this.hp = 0; this.isalive = false; }
         }
