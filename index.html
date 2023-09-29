@@ -312,7 +312,7 @@ body
         this.x = cx;
         this.y = cy;
         this.img = img;
-        this.wh_size2 = actbutton_small_radius/2;
+        this.wh_size2 = actbutton_small_radius/Math.SQRT2;
         }
     actbutton.prototype.act = function() { console.warn("actbutton.act not implemented"); }
     actbutton.prototype.click = function(x,y)
@@ -330,7 +330,7 @@ body
         {
         area.drawImage(this.img, this.x-this.wh_size2, this.y-this.wh_size2, this.wh_size2*2, this.wh_size2*2);
         }
-    var pausebutton = new actbutton(1130*context.width/1280, 77*context.height/720, pauseimg);
+    var pausebutton = new actbutton(1100*context.width/1280, 127*context.height/720, pauseimg);
     pausebutton.act = function()
         {
         paused = !paused;
@@ -339,7 +339,7 @@ body
         }
     var replaybutton = new actbutton(1160*context.width/1280, 127*context.height/720, replayimg);
     replaybutton.act = setdefaults;
-    var menubutton = new actbutton(1100*context.width/1280, 127*context.height/720, menuimg);
+    var menubutton = new actbutton(1130*context.width/1280, 77*context.height/720, menuimg);
     menubutton.act = function()
         {
         ReDraw = MenuDraw;
