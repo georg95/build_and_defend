@@ -1165,9 +1165,15 @@ body
         clicked = true;
         //ReDraw();
         }
-    function GameWheel(event)
+    function GameWheel(e)
         {
-        var direction = ((event.wheelDelta) ? event.wheelDelta/120 : event.detail/-3) || false;
+        //console.log(e);
+        e = e || window.event;
+
+        // wheelDelta не дает возможность узнать количество пикселей
+        var delta = e.deltaY || e.detail || e.wheelDelta;
+        //var direction = ((event.wheelDelta) ? event.wheelDelta/120 : event.detail/-3) || false;
+        var direction = delta>0?1:-1;
         //console.log("wheel direction:"+direction);
         var active = 0;
         switch(buildmode)
@@ -1183,8 +1189,22 @@ body
         if(bnum == 4)  { bnum = 0; }
         buttons[bnum].click();
         }
-    if (window.addEventListener) window.addEventListener("DOMMouseScroll", GameWheel, false);
-    window.onmousewheel = document.onmousewheel = GameWheel;
+    if (window.addEventListener) {
+    if ('onwheel' in document) {
+    // IE9+, FF17+, Ch31+
+    window.addEventListener("wheel", GameWheel);
+    } else if ('onmousewheel' in document) {
+    // устаревший вариант события
+    window.addEventListener("mousewheel", GameWheel);
+    } else {
+    // Firefox < 17
+    window.addEventListener("MozMousePixelScroll", GameWheel);
+    }
+    } else { // IE8-
+    window.attachEvent("onmousewheel", GameWheel);
+    }
+    //if (window.addEventListener) window.addEventListener("DOMMouseScroll", GameWheel, false);
+    window.onmousewheel = GameWheel;
 
     context.onmousemove=function(e) { mx = e.pageX-context.offsetLeft; my = e.pageY-context.offsetTop; mousemoved = true; }
     context.onmousedown=GameClick;
