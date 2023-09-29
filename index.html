@@ -12,6 +12,13 @@
     'use strict'
     var context = document.getElementById('game');
     var drawarea = context.getContext('2d');
+    var boom=[];
+    for(var i = 0; i < 9; i++)
+        {
+        boom[i]=new Image();
+        boom[i].src = "boom1/"+(i+1)+".png";
+        }
+    
     var drill = new Image();
     drill.src = "building229.png";
     var turret1 = new Image();
@@ -53,6 +60,21 @@
         area.moveTo(this.sx, this.sy);
         area.lineTo(this.fx, this.fy);
         area.stroke();
+        }
+
+    var effectBoom = Object.create(effect);
+    effectBoom.constructor = function(t, sx, sy)
+        {
+        effect.constructor.apply(this, arguments);
+        this.sx = sx;
+        this.sy = sy;
+        return this;
+        }
+    effectBoom.draw = function(area)
+        {
+        console.log("boom!");
+        var frame = 8-Math.floor(9*this.time/this.alltime);
+        area.drawImage(boom[frame],this.sx, this.sy, field.step, field.step);
         }
     var effects = [];
     function updateEffects()
@@ -225,8 +247,15 @@
         }
     ship.prototype.hit = function(damage)
         {
+        if (this.isalive === false) { return; }
         this.hp-=damage;
-        if (this.hp<=0) { this.hp = 0; this.isalive = false; this.act = this.death; }
+        if (this.hp<=0)
+            {
+            this.hp = 0;
+            this.isalive = false;
+            addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
+            this.act = this.death;
+            }
         }
     ship.prototype.draw = function(area)
         {
@@ -255,6 +284,7 @@
     factory.prototype.destroy = function()
         {
         factorycost-=5;
+        addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
         }
     factory.prototype.draw = function(area)
         {
@@ -285,6 +315,7 @@
     turret.prototype.destroy = function()
         {
         turretcost-=10;
+        addEffect(Object.create(effectBoom).constructor(20, this.x, this.y));
         }
     turret.prototype.hit = function(damage)
         {
@@ -304,7 +335,7 @@
         {
         if(this.angle > Math.PI)  { this.angle-=2*Math.PI; }
         if(this.angle < -Math.PI) { this.angle+=2*Math.PI; }
-        var enemy = getNearEnemy(this.x, this.y, 150)
+        var enemy = getNearEnemy(this.x, this.y, 100)
         if(enemy == undefined) { this.angle+=0.1; return; }
         
         var eangle = Math.atan2(enemy.y-this.y, enemy.x-this.x);
