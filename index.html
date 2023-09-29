@@ -85,6 +85,7 @@ body
     var effects;
     var paused = false;
     var doctitle = "build&defence";
+    var wave = 1;
     
     var soundeffect =
         {
@@ -904,6 +905,7 @@ body
         winflag = false;
         loseflag = false;
         paused = false;
+        wave = 1;
         gamestats.money={text:"Earn money",valuex:0};
         gamestats.builds={text:"Buildings lost", valuex:0};
         for (var key in gamestats)
@@ -1144,7 +1146,8 @@ body
         drawarea.font = "bold "+11*context.height/450+"px Arial";
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
-        drawarea.fillStyle = "#E6E6E6";    
+        drawarea.fillStyle = "#E6E6E6";
+        drawarea.fillText("wave "+wave, field.x_left+field.wh_size/2, field.y_up/2);
         for (var i = 0; i < buttons.length; i++)
             {
             var wh_size2 = button_small_radius/Math.SQRT2;
@@ -1232,6 +1235,7 @@ body
         curr_wait--;
         if(curr_wait == 0)
             {
+            wave++;
             curr_wait = waittime;
             waittime-=50;
             if(waittime <= 200)
