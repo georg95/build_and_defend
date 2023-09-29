@@ -799,7 +799,8 @@ canvas
         {
         area.fillStyle = "#0F0";
         if(this.hp!=this.maxhp) { area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4); }
-        area.drawImage(drill, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
+        area.drawImage(drill, this.x-field.step/2*0.9, this.y-field.step/2*0.9,
+                       field.step*0.9, field.step*0.9);
         }
     factory.prototype.hit = function(damage)
         {
