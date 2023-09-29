@@ -288,20 +288,20 @@ body
     function fieldscan(drawarea)
         {
         if (this.scanenabled === false) { return; }
-        drawarea.globalAlpha=0.3;
+        //drawarea.globalAlpha=0.3;
         for (var x = 0; x < field.size; x++)
         for (var y = 0; y < field.size; y++)
             {
             if (field.getItem(x,y) != undefined) { continue; }
             var valuable = field.getRes(x,y).concentration;
-            if(valuable < 7) { drawarea.fillStyle="#F00"; }
-            if(valuable >= 7 && valuable < 10) { drawarea.fillStyle="#F80"; }
-            if(valuable >= 10 && valuable < 13) { drawarea.fillStyle="#FF0"; }
-            if(valuable >= 13) { drawarea.fillStyle="#0F0"; }
+            if(valuable < 7) { drawarea.fillStyle="#FE7276"; }
+            if(valuable >= 7 && valuable < 10) { drawarea.fillStyle="#FFE673"; }
+            if(valuable >= 10 && valuable < 13) { drawarea.fillStyle="#FFE673"; }
+            if(valuable >= 13) { drawarea.fillStyle="#6EE768"; }
             
             drawarea.fillRect(field.x_left+x*field.step+2, field.y_up+y*field.step+2, field.step-4, field.step-4);
             }
-        drawarea.globalAlpha=1;
+        //drawarea.globalAlpha=1;
         }
     var fscan = fieldscan.bind({scanenabled:false});
     var pausebutton =
@@ -1056,7 +1056,7 @@ body
         drawarea.font = "bold "+11*context.height/450+"px Arial";
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
-        drawarea.fillStyle = "#DD2";    
+        drawarea.fillStyle = "#E6E6E6";    
         for (var i = 0; i < buttons.length; i++)
             {
             var wh_size2 = button_small_radius;
