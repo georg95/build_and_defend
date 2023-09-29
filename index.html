@@ -689,8 +689,8 @@ body
             {
             gold+=this.production;
             addEffect(Object.create(effectFlowText).constructor(
-                20, "$"+this.production, "bold 12px Arial", "255,255,0",
-                this.x, this.y-field.step/2, -field.step/2));
+                20, ""+this.production, "bold "+11*context.height/450+"px Arial", "230,230,230",
+                this.x, this.y, -field.step/2));
             this.prodStage = 0;
             }
         }
@@ -939,8 +939,8 @@ body
         {
         DrawBg(background);
         
-        var helpdesk = [{img:drill,    help:{"en":"Add from $1 to $14 per constant time",
-                                            "ru":"Добавляет от $1 до $14 за единицу времени"}}, 
+        var helpdesk = [{img:drill,    help:{"en":"Add from 1 to 14 per constant time",
+                                            "ru":"Добавляет от 1 до 14 за единицу времени"}}, 
                         {img:turret1,  help:{"en":"Strike enemies: flights and boss",
                                             "ru":"Атакует врагов: самолеты и босса"}},
                         {img:wallimg,  help:{"en":"Protect other buildings, 2.5 times more stronger",
@@ -1048,7 +1048,7 @@ body
             drawarea.drawImage(buttons[i].img, buttons[i].x-wh_size2, buttons[i].y-wh_size2,
                                wh_size2*2, wh_size2*2);
             if (buttons[i].cost() != undefined)
-            drawarea.fillText("$"+buttons[i].cost(),
+            drawarea.fillText(""+buttons[i].cost(),
                               buttons[i].x,
                               buttons[i].y-50*context.height/720);
             }
