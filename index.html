@@ -28,6 +28,52 @@
     var scannercost = 200;
     var scannerlvl = 0;
     
+    
+    var effect =
+        {
+        alive:true,
+        constructor: function(t) { this.time = t; this.alltime=t; return this; },
+        act: function() { if(this.time <= 0) { this.alive=false; return; } this.time--; },
+        draw: function(area) { ; }
+        };
+    var effectLaser = Object.create(effect);
+    effectLaser.constructor = function(t, sx, sy, fx, fy)
+        {
+        effect.constructor.apply(this, arguments);
+        this.sx = sx;
+        this.sy = sy;
+        this.fx = fx;
+        this.fy = fy;
+        return this;
+        };
+    effectLaser.draw = function(area)
+        {
+        area.strokeStyle = "rgba(255,0,0,"+this.time/this.alltime+")";
+        area.beginPath();
+        area.moveTo(this.sx, this.sy);
+        area.lineTo(this.fx, this.fy);
+        area.stroke();
+        }
+    var effects = [];
+    function updateEffects()
+        {
+        effects.forEach(function(elem, index, arr)
+            { if(elem === undefined) { return; } elem.act(); if(elem.alive === false) { delete arr[index]; } })
+        }
+    function drawEffects(area)
+        {
+        //console.log("draw effects");
+        effects.forEach(function(elem, index, arr) { if(elem === undefined) { return; } elem.draw(area); } )
+        }
+    function addEffect(eff)
+        {
+        console.log("add effect(" + effects.length+")");
+        for(var i = 0; i <= effects.length; i++) // <= is not error, in case if array is full
+            {
+            if(effects[i] === undefined) { effects[i] = eff; break; }
+            }
+        }
+    
     function winfunction()
         {
         this.state = 0;
@@ -258,14 +304,23 @@
         {
         if(this.angle > Math.PI)  { this.angle-=2*Math.PI; }
         if(this.angle < -Math.PI) { this.angle+=2*Math.PI; }
-        var enemy = getNearEnemy(this.x, this.y, 100)
+        var enemy = getNearEnemy(this.x, this.y, 150)
         if(enemy == undefined) { this.angle+=0.1; return; }
         
         var eangle = Math.atan2(enemy.y-this.y, enemy.x-this.x);
         var isscope = true;
-        if(eangle - this.angle >  0.3) { this.angle+=0.1; isscope = false; }
-        if(eangle - this.angle < -0.3) { this.angle-=0.1; isscope = false; }
-        if (this.shootstate == 0) { if(isscope) { enemy.hit(10); this.shootstate=20; } }
+        if(eangle - this.angle >  0.12) { this.angle+=0.1; isscope = false; }
+        if(eangle - this.angle < -0.12) { this.angle-=0.1; isscope = false; }
+        if (this.shootstate == 0)
+            {
+            if(isscope)
+                {
+                addEffect(Object.create(effectLaser).constructor(
+                    20, this.x+field.step/2, this.y+field.step/2, enemy.x+field.step/2, enemy.y+field.step/2));
+                enemy.hit(10);
+                this.shootstate=20;
+                }
+            }
         else { if(this.shootstate > 0) { this.shootstate--; } }
         }
     field.click = function(x,y)
@@ -364,6 +419,7 @@
 
         if(!winflag) { shipt.draw(drawarea); }
         fscan(drawarea);
+        drawEffects(drawarea);
         if(winflag)
             {
             winfunc.act(); 
@@ -372,6 +428,7 @@
         }
     function GameUpdate()
         {
+        updateEffects();
         var winner = true;
         for(var x = 0; x < field.size; x++)
         for(var y = 0; y < field.size; y++)
