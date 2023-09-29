@@ -31,22 +31,11 @@
             }
         }
     console.log(field.items);
-    drawarea.fillStyle="#334";
-    drawarea.fillRect(0,0, context.width, context.height);
+
     console.log('canvas='+drawarea);
     //field.setItem(3, 7, "factory");
 
-    function GameClick(e)
-        {
-        console.log("Click ("+e.pageX+", "+e.pageY+")");
-        field.click(e.pageX-context.offsetLeft, e.pageY-context.offsetTop);
-            
-        drawarea.fillStyle="#334";
-        drawarea.fillRect(0,0, context.width, context.height);
-        field.draw(drawarea);
-        }
 
-    context.onclick=GameClick;
 
     field.draw = function (drawarea)
         {
@@ -72,7 +61,21 @@
                 }
             }
         }
-    field.draw(drawarea);
+    function ReDraw()
+        {
+        drawarea.fillStyle="#334";
+        drawarea.fillRect(0,0, context.width, context.height);
+        field.draw(drawarea);
+        }
+    
+    function GameClick(e)
+        {
+        console.log("Click ("+e.pageX+", "+e.pageY+")");
+        field.click(e.pageX-context.offsetLeft, e.pageY-context.offsetTop);
+        ReDraw();
+        }
+    context.onclick=GameClick;
+    ReDraw();
 </script>
 
 </body>
