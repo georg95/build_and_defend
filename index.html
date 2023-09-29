@@ -865,10 +865,29 @@ body
         if(mousemoved) { tomenubutton.hover(mx, my); }
         if(clicked)    { if(tomenubutton.click(mx, my)) { clicked=false; } }
         }
+    function AboutDraw()
+        {
+        DrawBg();
+        var textsize = 14;
+        drawarea.font = "bold "+textsize+"px Arial";
+        drawarea.textAlign = "center";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle = "#FFF";
+        drawarea.fillText("This is simple HTML5-game created by Shkuratov Georgy", context.width/2, context.height/2);
+        drawarea.fillText("All sounds are from freesound.org", context.width/2, context.height/2+textsize*1.5);
+        drawarea.fillText("In case of bugs, or anything else write me: jura913@yandex.ru", context.width/2, context.height/2+textsize*3);
+        tomenubutton.draw(drawarea);
+        }
+    function AboutUpdate()
+        {
+        tomenubutton.update();
+        if(mousemoved) { tomenubutton.hover(mx, my); }
+        if(clicked)    { if(tomenubutton.click(mx, my)) { clicked=false; } }
+        }
     var menubuttons=[];
-    menubuttons[0] = new menuButton(2, "PLAY", function() {ReDraw = GameDraw; Update=GameUpdate;});
-    menubuttons[1] = new menuButton(3, "HELP", function() {ReDraw = HelpDraw; Update=HelpUpdate;});
-    menubuttons[2] = new menuButton(4, "ABOUT", function() {;});
+    menubuttons[0] = new menuButton(2, "PLAY", function()  {ReDraw = GameDraw;  Update=GameUpdate;});
+    menubuttons[1] = new menuButton(3, "HELP", function()  {ReDraw = HelpDraw;  Update=HelpUpdate;});
+    menubuttons[2] = new menuButton(4, "ABOUT", function() {ReDraw = AboutDraw; Update=AboutUpdate;});
     
     
     function MenuDraw()
