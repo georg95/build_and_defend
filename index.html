@@ -414,6 +414,12 @@ body
     field.res = [];
     field.getRes = function(x, y)       { return this.res[x*this.size+y]; }
     field.setRes = function(x, y, obj)  { this.res[x*this.size+y] = obj; }
+    field.setWall = function(x, y)
+        {
+        var item = field.getItem(x,y);
+        item.haswall = new wall(x, y);
+        field.setItem(x,y,item);
+        }
     field.getItem = function(x, y)      { return this.items[x*this.size+y]; }
     field.setItem = function(x, y, obj) { this.items[x*this.size+y] = obj; }
     field.wh_size = context.height - margin*2;
@@ -434,7 +440,7 @@ body
             var bx = currbuild.x;
             var by = currbuild.y;
             var curr_rad = Math.sqrt((bx-x)*(bx-x)+(by-y)*(by-y));
-            if (curr_rad < near_rad) { near_rad = curr_rad; near_obj = currbuild; }
+            if (curr_rad < near_rad) { near_rad = curr_rad; near_obj = currbuild.haswall || currbuild; }
             }
         if (near_rad <= radius) { return near_obj; }
         return undefined;
@@ -646,9 +652,9 @@ body
         }
     wall.prototype.draw = function(area)
         {
-        area.fillStyle = "#0F0";
-        if(this.hp!=this.maxhp) { area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4); }
+        area.fillStyle = "#00F";
         area.drawImage(wallimg, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
+        area.fillRect(this.x-field.step/2, this.y-field.step/2, field.step*this.hp/this.maxhp, 4);
         }
     wall.prototype.hit = function(damage)
         {
@@ -669,8 +675,10 @@ body
         }
     factory.prototype.sell = function()
         {
+        if(this.haswall) { this.haswall.sell(); this.haswall = undefined; return false; }
         factorycost-=5;
         gold+=factorycost;
+        return true;
         }
     factory.prototype.destroy = function()
         {
@@ -718,8 +726,10 @@ body
         }
     turret.prototype.sell = function()
         {
+        if(this.haswall) { this.haswall.sell(); this.haswall = undefined; return false; }
         turretcost-=10;
         gold+=turretcost;
+        return true;
         }
     turret.prototype.hit = function(damage)
         {
@@ -769,12 +779,20 @@ body
                 if (item === undefined) { return; }
                 if (item.sell != undefined)
                     {
-                    item.sell();
                     soundeffect.addSell();
-                    this.setItem(relx, rely, undefined);
+                    if(item.sell()) this.setItem(relx, rely, undefined); // cuz of sell wall case
                     }
                 }
-            if (this.getItem(relx, rely) != undefined) { return; }
+            if (this.getItem(relx, rely) != undefined)
+                {
+                if (buildmode == "wall" && !this.getItem(relx, rely).haswall)
+                    {
+                    if (gold < wallcost) { return; }
+                    gold -= wallcost;
+                    this.setWall(relx, rely);
+                    }
+                    return;
+                }
             if (buildmode == "factory")
                 {
                 if (gold < factorycost) { return; }
@@ -787,12 +805,7 @@ body
                 gold -= turretcost;
                 this.setItem(relx, rely, new turret(relx, rely));
                 }
-            if (buildmode == "wall")
-                {
-                if (gold < wallcost) { return; }
-                gold -= wallcost;
-                this.setItem(relx, rely, new wall(relx, rely));
-                }
+
 
             }
         }
@@ -851,7 +864,9 @@ body
         for(var y = 0; y < this.size; y++)
             {
             if(this.getItem(x,y) === undefined) { continue; }
-            this.getItem(x,y).draw(drawarea);
+            var item = this.getItem(x,y);
+            item.draw(drawarea);
+            if(item.haswall) { item.haswall.draw(drawarea); }
             }
         var dx = mx-this.x_left;
         var dy = my-this.y_up;
@@ -859,18 +874,25 @@ body
             {
             var sx = Math.floor(dx/this.step);
             var sy = Math.floor(dy/this.step);
-            if(this.getItem(sx,sy) === undefined)
+            var item = this.getItem(sx,sy);
+            if(item === undefined)
                 {
                 var img = undefined;
                 if(buildmode === "factory") { img = drill; }
                 if(buildmode === "turret")  { img = turret1; }
-                if(buildmode === "wall")    { img = wallimg; }
+                //if(buildmode === "wall")    { img = wallimg; }
                 if(img !== undefined)
                     {
                     drawarea.globalAlpha = 0.2;
                     drawarea.drawImage(img, this.x_left+sx*this.step, this.y_up+sy*this.step, this.step, this.step);
                     drawarea.globalAlpha = 1;
                     }
+                }
+            else if (buildmode === "wall" && !item.haswall)
+                {
+                drawarea.globalAlpha = 0.5;
+                drawarea.drawImage(wallimg, this.x_left+sx*this.step, this.y_up+sy*this.step, this.step, this.step);
+                drawarea.globalAlpha = 1;
                 }
             }
         }
@@ -971,8 +993,8 @@ body
         drawarea.textBaseline = "middle";
         drawarea.fillStyle = "#FFF";
         var text = {"en":["This is a simple HTML5 game by Shkuratov Georgy",
-                    "All sounds are from freesound.org",
-                   "In case of bugs, or anything else write me: jura913@yandex.ru"],
+                    "Sounds: freesound.org",
+                   "Bumped into a bug? Contact me: jura913@yandex.ru"],
                    "ru":["Перед вами простая игра на HTML5, автор — Шкуратов Георгий",
                          "Все звуки взяты с freesound.org",
                          "По поводу ошибок или по любому другому поводу пишите сюда: jura913@yandex.ru"]}
@@ -1085,6 +1107,18 @@ body
             {
             var curritem = field.getItem(x,y);
             if(curritem === undefined) { continue; }
+            if(curritem.haswall)
+                {
+                if(!curritem.haswall.isalive || (boom && loseflag))
+                    {
+                    curritem.haswall.destroy();
+                    var item = field.getItem(x,y)
+                    item.haswall = undefined;
+                    field.setItem(x,y,item);
+                    boom = false;
+                    continue;
+                    }
+                }
             if(!curritem.isalive || (boom && loseflag)) { curritem.destroy(); field.setItem(x,y, undefined); boom = false; }
             else { curritem.act(); }
             }
