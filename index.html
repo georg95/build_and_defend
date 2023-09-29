@@ -13,6 +13,10 @@
     var drill = new Image();
     drill.src = "building229.png";
     var margin = 20;
+    
+    var gold = 100;
+    var goldprod = 0;
+    
     var field = {};
     field.size = 10;
     field.items = [];
@@ -23,6 +27,9 @@
     field.x_left = context.width  - field.wh_size - margin;
     field.click = function(x,y)
         {
+        if (gold < 30) { return; }
+        gold -= 30;
+        goldprod += 0.05;
         var relx = (x-this.x_left)/this.wh_size*this.size;
         var rely = (y-this.y_up)/this.wh_size*this.size;
         if (relx > 0 && rely > 0 && relx < this.size && rely < this.size)
@@ -42,6 +49,7 @@
         drawarea.strokeStyle="black";
 
         var step = this.wh_size/this.size;
+        drawarea.beginPath();
         for (var i = 1; i < this.size; i++)
             {
             drawarea.moveTo(this.x_left,              this.y_up+i*step);
@@ -51,31 +59,46 @@
             }
         drawarea.stroke();
         drawarea.strokeRect(this.x_left, this.y_up, this.wh_size, this.wh_size);
+        drawarea.closePath();
         for(var x = 0; x < this.size; x++)
         for(var y = 0; y < this.size; y++)
             {
-            if(this.getItem(x,y) == "factory")
+            if(this.getItem(x,y) === "factory")
                 {
                 console.log("factory found");
                 drawarea.drawImage(drill, this.x_left+x*step, this.y_up+y*step, step, step);
                 }
             }
         }
+
+    drawarea.font = "bold 24px courier";
+    drawarea.textAlign = "left";
+    drawarea.textBaseline = "top";
     function ReDraw()
         {
         drawarea.fillStyle="#334";
         drawarea.fillRect(0,0, context.width, context.height);
         field.draw(drawarea);
+        drawarea.fillStyle = "#DD2";
+        drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
         }
-    
+    function GameUpdate()
+        {
+        gold += goldprod;
+        }
+    function GameLoop()
+        {
+        GameUpdate();
+        ReDraw();
+        }
     function GameClick(e)
         {
         console.log("Click ("+e.pageX+", "+e.pageY+")");
         field.click(e.pageX-context.offsetLeft, e.pageY-context.offsetTop);
-        ReDraw();
+        //ReDraw();
         }
     context.onclick=GameClick;
-    ReDraw();
+    setInterval(GameLoop, 30);
 </script>
 
 </body>
