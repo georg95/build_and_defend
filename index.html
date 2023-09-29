@@ -8,6 +8,7 @@
 <canvas height='400' width='800' id='game'>Bad browser</canvas>
 
 <script>
+    'use strict'
     var context = document.getElementById('game');
     var drawarea = context.getContext('2d');
     var drill = new Image();
@@ -35,7 +36,7 @@
     factorybutton.wh_size = 32;
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
-    buttons = [turretbutton, factorybutton];
+    var buttons = [turretbutton, factorybutton];
     
     
     var field = {};
@@ -112,7 +113,7 @@
         area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4);
         area.drawImage(ship1, this.x, this.y, field.step, field.step);
         }
-    shipt = new ship(2,3);
+    var shipt = new ship(2,3);
     
     console.log(field.items);
 
