@@ -20,6 +20,8 @@
     
     var buildmode = "factory";
     var margin = 20;
+    var factorycost = 30;
+    var turretcost = 50;
     
     var gold = 100;
     var goldprod = 0;
@@ -30,12 +32,14 @@
     turretbutton.wh_size = 32;
     turretbutton.img = turret1;
     turretbutton.click = function() { buildmode = "turret"; }
+    turretbutton.cost = function() { return turretcost; }
     var factorybutton = {};
     factorybutton.x = margin;
     factorybutton.y = turretbutton.y+turretbutton.wh_size+5;
     factorybutton.wh_size = 32;
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
+    factorybutton.cost = function() { return factorycost; }
     var buttons = [turretbutton, factorybutton];
     
 
@@ -85,7 +89,7 @@
     ship.prototype.attack = function()
         {
         this.attackTime++;
-        this.x -= 1;
+        
         var build = getNearBuilding(this.x, this.y, 80);
         if (build != undefined)
             {
@@ -95,6 +99,7 @@
                 this.shootstate = 15;
                 }
             }
+        else { this.x -= 3; }
         if(this.shootstate > 0) { this.shootstate--; }
         if(this.x <= field.x_left)
             {
@@ -149,6 +154,11 @@
         this.maxhp = 100;
         this.hp = this.maxhp;
         this.isalive = true;
+        factorycost+=5;
+        }
+    factory.prototype.destroy = function()
+        {
+        factorycost-=5;
         }
     factory.prototype.draw = function(area)
         {
@@ -174,6 +184,11 @@
         this.angle = 0;
         this.shootstate = 0;
         this.isalive = true;
+        turretcost+=10;
+        }
+    turret.prototype.destroy = function()
+        {
+        turretcost-=10;
         }
     turret.prototype.hit = function(damage)
         {
@@ -212,15 +227,15 @@
             if (this.getItem(relx, rely) != undefined) { return; }
             if (buildmode == "factory")
                 {
-                if (gold < 30) { return; }
+                if (gold < factorycost) { return; }
+                gold -= factorycost;
                 this.setItem(relx, rely, new factory(relx, rely));
-                gold -= 30;
                 }
             if (buildmode == "turret")
                 {
-                if (gold < 50) { return; }
+                if (gold < turretcost) { return; }
+                gold -= turretcost;
                 this.setItem(relx, rely, new turret(relx, rely));
-                gold -= 50;
                 }
             }
         }
@@ -255,20 +270,29 @@
             }
         }
 
-    drawarea.font = "bold 24px courier";
-    drawarea.textAlign = "left";
-    drawarea.textBaseline = "top";
+
     function ReDraw()
         {
+        drawarea.font = "bold 24px courier";
+        drawarea.textAlign = "left";
+        drawarea.textBaseline = "top";
         drawarea.fillStyle="#334";
         drawarea.fillRect(0,0, context.width, context.height);
         field.draw(drawarea);
         drawarea.fillStyle = "#DD2";
         drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
+        
+        drawarea.font = "bold 10px courier";
+        drawarea.textAlign = "right";
+        drawarea.textBaseline = "bottom";
+        drawarea.fillStyle = "#DD2";    
         for (var i = 0; i < buttons.length; i++)
             {
             drawarea.drawImage(buttons[i].img, buttons[i].x, buttons[i].y,
                                buttons[i].wh_size, buttons[i].wh_size);
+            drawarea.fillText("$"+buttons[i].cost(),
+                              buttons[i].x+buttons[i].wh_size,
+                              buttons[i].y+buttons[i].wh_size);
             }
         var bm = 1;
         if (buildmode == "turret")  { bm = 0; }
@@ -276,6 +300,7 @@
         drawarea.strokeStyle="#F00";
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
+
         shipt.draw(drawarea);
         }
     function GameUpdate()
@@ -285,7 +310,7 @@
             {
             var curritem = field.getItem(x,y);
             if(curritem === undefined) { continue; }
-            if(!curritem.isalive) { field.setItem(x,y, undefined); }
+            if(!curritem.isalive) { curritem.destroy(); field.setItem(x,y, undefined); }
             else { curritem.act(); }
             }
         shipt.act();
