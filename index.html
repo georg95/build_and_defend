@@ -1056,7 +1056,7 @@ body
         if (buildmode == "factory") { bm = 1; }
         if (buildmode == "wall")    { bm = 2; }
         if (buildmode == "sell")    { bm = 3; }
-        drawarea.strokeStyle="#F00";
+        drawarea.strokeStyle="rgba(255,0,0,0.6)";
         drawarea.beginPath();
         var angle = Math.PI/6;
         drawarea.moveTo(buttons[bm].x+button_big_radius*Math.cos(angle),
@@ -1067,7 +1067,7 @@ body
             drawarea.lineTo(buttons[bm].x+button_big_radius*Math.cos(angle),
                             buttons[bm].y+button_big_radius*Math.sin(angle));
             }
-        drawarea.lineWidth = 4*context.height/720;
+        drawarea.lineWidth = 6*context.height/720;
         drawarea.stroke();
         
 
