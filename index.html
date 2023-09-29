@@ -27,6 +27,8 @@
     ship1.src = "ship1.png";
     var scanner1 = new Image();
     scanner1.src = "scanner.png";
+    var wallimg = new Image();
+    wallimg.src = "wall.png";
     //var laser = new Audio("laser.ogg");
     var mx = 0;
     var my = 0;
@@ -38,6 +40,7 @@
     var margin = 40;
     var factorycost = 30;
     var turretcost = 50;
+    var wallcost = 60;
     var scannercost = 100;
     var scannerlvl = 0;
     
@@ -243,10 +246,17 @@
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
     factorybutton.cost = function() { return factorycost; }
+    var wallbutton = {};
+    wallbutton.x = margin;
+    wallbutton.y = factorybutton.y+factorybutton.wh_size+5;
+    wallbutton.wh_size = 32;
+    wallbutton.img = wallimg;
+    wallbutton.click = function() { buildmode = "wall"; }
+    wallbutton.cost = function() { return wallcost; }
     var scannerbutton =
         {
         x: margin,
-        y: factorybutton.y+factorybutton.wh_size+5,
+        y: wallbutton.y+wallbutton.wh_size+5,
         wh_size: 32,
         img: scanner1,
         click: function()
@@ -262,7 +272,7 @@
             },
         cost: function() { return scannercost; }
         }    
-    var buttons = [turretbutton, factorybutton, scannerbutton];
+    var buttons = [turretbutton, factorybutton, wallbutton, scannerbutton];
     
     
     field.size = 10;
@@ -385,6 +395,32 @@
         return undefined;
         }
     
+    function wall(px, py)
+        {
+        this.x = Math.round(field.x_left+px*field.step);
+        this.y = Math.round(field.y_up  +py*field.step);
+        this.maxhp = 250;
+        this.hp = this.maxhp;
+        this.isalive = true;
+        wallcost+=15;
+        }
+    wall.prototype.destroy = function()
+        {
+        wallcost-=15;
+        addEffect(Object.create(effectBoom).constructor(this.x, this.y));
+        }
+    wall.prototype.draw = function(area)
+        {
+        area.fillStyle = "#0F0";
+        if(this.hp!=this.maxhp) { area.fillRect(this.x, this.y-4, Math.round(field.step*this.hp/this.maxhp), 4); }
+        area.drawImage(wallimg, this.x, this.y, field.step, field.step);
+        }
+    wall.prototype.hit = function(damage)
+        {
+        this.hp-=damage;
+        if (this.hp<=0) { this.hp = 0; this.isalive = false; }
+        }
+    wall.prototype.act = function () {;}
     function factory(px, py)
         {
         this.x = Math.round(field.x_left+px*field.step);
@@ -495,6 +531,12 @@
                 if (gold < turretcost) { return; }
                 gold -= turretcost;
                 this.setItem(relx, rely, new turret(relx, rely));
+                }
+            if (buildmode == "wall")
+                {
+                if (gold < wallcost) { return; }
+                gold -= wallcost;
+                this.setItem(relx, rely, new wall(relx, rely));
                 }
             }
         }
@@ -629,6 +671,7 @@
         var bm = 1;
         if (buildmode == "turret")  { bm = 0; }
         if (buildmode == "factory") { bm = 1; }
+        if (buildmode == "wall")    { bm = 2; }
         drawarea.strokeStyle="#F00";
         drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
                             buttons[bm].wh_size, buttons[bm].wh_size);
