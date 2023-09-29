@@ -71,6 +71,7 @@ body
     var wallcost;
     var scannercost;
     var scannerlvl;
+    var gamestats = {};
     var button_big_radius = 67*context.height/720;
     var button_small_radius = 60*context.height/720;
     var actbutton_small_radius = 26*context.height/720;
@@ -261,18 +262,46 @@ body
         this.state = 0;
         this.act = this.win;
         }
+    endfunction.prototype.endstats = function(x, y, w, h)
+        {
+        drawarea.fillStyle="#555";
+        drawarea.fillRect (x-w/2, y-h/2, w, h);
+        drawarea.strokeStyle="#000";
+        drawarea.lineWidth=6*context.height/720;
+        drawarea.strokeRect (x-w/2, y-h/2, w, h);
+        
+        var stats = Object.keys(gamestats).length;
+        drawarea.font = "bold "+12*context.height/720+"px sans-serif";
+        drawarea.textAlign = "left";
+        drawarea.textBaseline = "middle";
+        drawarea.fillStyle="#FFF";
+        var i = 0;
+        var strh = h/stats;
+        var ys = y-h/2+strh/2;
+        for (var key in gamestats)
+            {
+            drawarea.fillText(""+gamestats[key].text+": "+gamestats[key].value, x-w*2/5, ys+i*strh); 
+            i++;
+            }
+        }
     endfunction.prototype.win = function ()
         {
         this.state += 0.2;
-        drawarea.font = "bold 120px sans-serif";
+        drawarea.font = "bold "+120*context.height/720+"px sans-serif";
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
         drawarea.fillStyle="#FFF";
         
-        drawarea.translate(Math.round(context.width/2), Math.round(context.height/2));
+        var rectw = context.width/4;
+        var recth = context.height/4;
+        
+        drawarea.translate(context.width/2, context.height/2-recth);
         drawarea.rotate(Math.cos(this.state)/5);
         drawarea.fillText("YOU WIN", 0, 0);
         drawarea.setTransform(1, 0, 0, 1, 0, 0);
+        drawarea.globalAlpha = 0.8;
+        this.endstats(context.width/2,context.height/2,rectw,recth);
+        drawarea.globalAlpha = 1;
         }
     endfunction.prototype.lose = function ()
         {
@@ -285,8 +314,19 @@ body
         }
     var endfunc = new endfunction();
     
-    function switchlose () { endfunc.act = endfunc.lose; endflag = true; loseflag = true; }
-    function switchwin ()  { endfunc.act = endfunc.win; endflag = true; winflag = true; }
+    function switchlose ()
+        {
+        for (var key in gamestats) { Object.defineProperty(gamestats[key], "value", { set:function() {;} } ); }
+        endfunc.act = endfunc.lose; endflag = true; loseflag = true;
+        }
+    function switchwin ()
+        {
+        for (var key in gamestats)
+            {
+            Object.defineProperty(gamestats[key], "value", { set:function() {;} } );
+            }
+        endfunc.act = endfunc.win; endflag = true; winflag = true;
+        }
     
     function fieldscan(drawarea)
         {
@@ -632,6 +672,7 @@ body
     wall.prototype.destroy = function()
         {
         wallcost-=15;
+        gamestats.builds.value++;
         addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     wall.prototype.draw = function(area)
@@ -669,6 +710,7 @@ body
     factory.prototype.destroy = function()
         {
         factorycost-=5;
+        gamestats.builds.value++;
         addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     factory.prototype.draw = function(area)
@@ -688,6 +730,7 @@ body
         if(this.prodStage >= 100)
             {
             gold+=this.production;
+            gamestats.money.value += this.production;
             addEffect(Object.create(effectFlowText).constructor(
                 20, ""+this.production, "bold "+11*context.height/450+"px Arial", "230,230,230",
                 this.x, this.y, -field.step/2));
@@ -708,6 +751,7 @@ body
     turret.prototype.destroy = function()
         {
         turretcost-=10;
+        gamestats.builds.value++;
         addEffect(Object.create(effectBoom).constructor(this.x, this.y));
         }
     turret.prototype.sell = function()
@@ -812,6 +856,17 @@ body
         winflag = false;
         loseflag = false;
         paused = false;
+        gamestats.money={text:"Earn money",valuex:0};
+        gamestats.builds={text:"Buildings lost", valuex:0};
+        for (var key in gamestats)
+            {
+            Object.defineProperty(gamestats[key], "value",
+                {
+                set:function(a) {this.valuex=a;},
+                get:function() { return this.valuex;},
+                configurable: true,
+                });
+            }
         pausebutton.img = pauseimg;
         effects = [];
         fscan=fieldscan.bind({scanenabled: false});
