@@ -929,22 +929,30 @@ body
         {
         DrawBg();
         
-        var helpdesk = [{img:drill,    help:"Add from $1 to $14 per constant time"}, 
-                        {img:turret1,  help:"Strike enemies: flights and boss"},
-                        {img:wallimg,  help:"Protect other buildings, 2.5 times more stronger"},
-                        {img:ship1,    help:"They will try to destroy your base"},
-                        {img:bossimg,  help:"Appears after 10 flights. If destroyed, you WIN. If cross left border, you LOSE"},
-                        {img:sellimg,  help:"Buildings sell mode"},
-                        {img:scanner1, help:"For 30 seconds show rich(green) and poor(red) places to build factory"},];
+        var helpdesk = [{img:drill,    help:{"en":"Add from $1 to $14 per constant time",
+                                            "ru":"Добавляет от $1 до $14 за еденицу времени"}}, 
+                        {img:turret1,  help:{"en":"Strike enemies: flights and boss",
+                                            "ru":"Атакует врагов: самолеты и босса"}},
+                        {img:wallimg,  help:{"en":"Protect other buildings, 2.5 times more stronger",
+                                            "ru":"Защищает остальные здания, прочнее их в 2.5 раз"}},
+                        {img:ship1,    help:{"en":"They will try to destroy your base",
+                                            "ru":"Периодически появляется и атакует здания"}},
+                        {img:bossimg,  help:{"en":"Appears after 10 flights. If destroyed, you WIN. If cross left border, you LOSE",
+                                            "ru":"Появляется после 10 самолетов. Вы победите, если уничтожите его, иначе проиграете."}},
+                        {img:sellimg,  help:{"en":"Buildings sell mode",
+                                            "ru":"Режим продажи зданий"}},
+                        {img:scanner1, help:{"en":"For 30 seconds show rich(green) and poor(red) places to build factory",
+                                            "ru":"На 30 секунд показывает прибыльность участков для фабрики: от зеленого(прибыльный) до красного"}},];
         var iconsize = (tomenubutton.centery-tomenubutton.height/2-margin*2)/helpdesk.length;
-        drawarea.font = "bold 14px Arial";
+        drawarea.font = "bold 13px Arial";
         drawarea.textAlign = "left";
         drawarea.textBaseline = "middle";
         drawarea.fillStyle = "#FFF";
+        var locale = navigator.language;
         for (var i in helpdesk)
             {
             drawarea.drawImage(helpdesk[i].img, margin, margin+iconsize*i, iconsize, iconsize);
-            drawarea.fillText(helpdesk[i].help, margin*2+iconsize, margin+iconsize*i+iconsize/2);
+            drawarea.fillText(helpdesk[i].help[locale] || helpdesk[i].help["en"], margin*2+iconsize, margin+iconsize*i+iconsize/2);
             }
         tomenubutton.draw(drawarea);
         }
@@ -962,9 +970,16 @@ body
         drawarea.textAlign = "center";
         drawarea.textBaseline = "middle";
         drawarea.fillStyle = "#FFF";
-        drawarea.fillText("This is simple HTML5-game created by Shkuratov Georgy", context.width/2, context.height/2);
-        drawarea.fillText("All sounds are from freesound.org", context.width/2, context.height/2+textsize*1.5);
-        drawarea.fillText("In case of bugs, or anything else write me: jura913@yandex.ru", context.width/2, context.height/2+textsize*3);
+        var text = {"en":["This is simple HTML5-game created by Shkuratov Georgy",
+                    "All sounds are from freesound.org",
+                   "In case of bugs, or anything else write me: jura913@yandex.ru"],
+                   "ru":["Перед вами простая игра на HTML5 автор - Шкуратов Георгий",
+                         "Все звуки взяты с freesound.org",
+                         "По поводу ошибок или по любому другому поводу пишите сюда: jura913@yandex.ru"]}
+        var locale = navigator.language;
+        drawarea.fillText(text[locale][0]||text["en"][0], context.width/2, context.height/2);
+        drawarea.fillText(text[locale][1]||text["en"][1], context.width/2, context.height/2+textsize*1.5);
+        drawarea.fillText(text[locale][2]||text["en"][2], context.width/2, context.height/2+textsize*3);
         tomenubutton.draw(drawarea);
         }
     function AboutUpdate()
