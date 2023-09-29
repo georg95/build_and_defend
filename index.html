@@ -56,11 +56,20 @@
         lasersounds:[],
         boomsounds:[],
         bulletsouns:[],
+        alienlasersounds:[],
         addLaser: function()
             {
             for(var i = 0; i < this.lasersounds.length; i++)
                 {
                 var cur_snd = this.lasersounds[i];
+                if(cur_snd.paused) { cur_snd.play(); break; }
+                }
+            },
+        addAlienLaser: function()
+            {
+            for(var i = 0; i < this.lasersounds.length; i++)
+                {
+                var cur_snd = this.alienlasersounds[i];
                 if(cur_snd.paused) { cur_snd.play(); break; }
                 }
             },
@@ -89,6 +98,8 @@
         soundeffect.boomsounds[i].volume = 0.2;
         soundeffect.bulletsouns[i] = new Audio("shoot.ogg");
         soundeffect.bulletsouns[i].volume = 0.2;
+        soundeffect.alienlasersounds[i] = new Audio("laser2.ogg");
+        soundeffect.alienlasersounds[i].volume = 0.2;
         }
     var effect =
         {
@@ -119,19 +130,20 @@
                       this.sy+this.dy-this.dy*this.time/this.alltime)
         }
     var effectLaser = Object.create(effect);
-    effectLaser.constructor = function(t, sx, sy, fx, fy)
+    effectLaser.constructor = function(t, sx, sy, fx, fy, color, nosnd)
         {
         effect.constructor.apply(this, arguments);
         this.sx = sx;
         this.sy = sy;
         this.fx = fx;
         this.fy = fy;
-        soundeffect.addLaser();
+        this.color = color || "255,0,0";
+        if(!nosnd) { soundeffect.addLaser(); }
         return this;
         };
     effectLaser.draw = function(area)
         {
-        area.strokeStyle = "rgba(255,0,0,"+this.time/this.alltime+")";
+        area.strokeStyle = "rgba("+this.color+","+this.time/this.alltime+")";
         area.beginPath();
         area.moveTo(this.sx, this.sy);
         area.lineTo(this.fx, this.fy);
@@ -325,6 +337,7 @@
         this.isalive = true;
         this.attackTime = 0;
         this.shootstate = 0;
+        this.angle = 0;
         }
     bossturret.prototype.move = function(dx, dy) { this.x+=dx; this.y+=dy; }
     bossturret.prototype.hit = function(damage)
@@ -342,21 +355,26 @@
     bossturret.prototype.drawself = function(area)
         {
         area.fillStyle = "#0F0";
-        area.fillRect(this.x-field.step/2, this.y-field.step/2-4, Math.round(field.step*this.hp/this.maxhp), 4);
-        area.drawImage(bossturretimg, this.x-field.step/2, this.y-field.step/2, field.step, field.step);
+        area.fillRect(this.x-field.step/4, this.y-field.step/4-2, Math.round(field.step/2*this.hp/this.maxhp), 2);
+        area.translate(this.x, this.y);
+        area.rotate(this.angle);
+        area.drawImage(bossturretimg, -field.step/4, -field.step/4, field.step/2, field.step/2);
+        area.resetTransform();
         }
     bossturret.prototype.act = function()
         {
         this.attackTime++;
-        
+        this.angle+=0.05;
+        if(this.angle>2*Math.PI) { this.angle-=2*Math.PI; }
         var build = getNearBuilding(this.x, this.y, 120);
         if (build != undefined)
             {
             if(this.shootstate == 0)
                 {
-                addEffect(Object.create(effectBullet).constructor(10, this.x, this.y, build.x, build.y));
+                addEffect(Object.create(effectLaser).constructor(5, this.x, this.y, build.x, build.y, "0,255,0", true));
+                soundeffect.addAlienLaser();
                 build.hit(20);
-                this.shootstate = 15;
+                this.shootstate = 10;
                 }
             }
         if(this.shootstate > 0) { this.shootstate--; }
