@@ -44,6 +44,7 @@
         {
         lasersounds:[],
         boomsounds:[],
+        bulletsouns:[],
         addLaser: function()
             {
             for(var i = 0; i < this.lasersounds.length; i++)
@@ -59,6 +60,14 @@
                 var cur_snd = this.boomsounds[i];
                 if(cur_snd.paused) { cur_snd.play(); break; }
                 }
+            },
+        addBullet: function()
+            {
+            for(var i = 0; i < this.bulletsouns.length; i++)
+                {
+                var cur_snd = this.bulletsouns[i];
+                if(cur_snd.paused) { cur_snd.play(); break; }
+                }
             }
         };
     for(var i = 0; i < 5; i++)
@@ -67,6 +76,8 @@
         soundeffect.lasersounds[i].volume = 0.2;
         soundeffect.boomsounds[i] = new Audio("boom.ogg");
         soundeffect.boomsounds[i].volume = 0.2;
+        soundeffect.bulletsouns[i] = new Audio("shoot.ogg");
+        soundeffect.bulletsouns[i].volume = 0.2;
         }
     var effect =
         {
@@ -94,7 +105,32 @@
         area.lineTo(this.fx, this.fy);
         area.stroke();
         }
-
+    var effectBullet = Object.create(effect);
+    effectBullet.constructor = function(t, sx, sy, fx, fy)
+        {
+        effect.constructor.apply(this, arguments);
+        this.sx = sx;
+        this.sy = sy;
+        this.fx = fx;
+        this.fy = fy;
+        soundeffect.addBullet();
+        return this;
+        };
+    effectBullet.draw = function(area)
+        {
+        area.strokeStyle = "#FF0";
+        area.beginPath();
+        var dx = this.fx-this.sx;
+        var dy = this.fy-this.sy;
+        var x = this.fx-dx*this.time/this.alltime;
+        var y = this.fy-dy*this.time/this.alltime;
+        var xx = x+dx/5;
+        var yy = y+dy/5;
+        if(this.time/this.alltime <= 1/5) { xx=this.fx; yy=this.fy; }
+        area.moveTo(x, y);
+        area.lineTo(xx, yy);
+        area.stroke();
+        }
     var effectBoom = Object.create(effect);
     effectBoom.constructor = function(sx, sy)
         {
@@ -243,6 +279,8 @@
             {
             if(this.shootstate == 0)
                 {
+                addEffect(Object.create(effectBullet).constructor(
+                    10, this.x+field.step/2, this.y+field.step/2, build.x+field.step/2, build.y+field.step/2));
                 build.hit(30);
                 this.shootstate = 15;
                 }
