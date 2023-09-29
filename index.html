@@ -498,7 +498,6 @@
             if (enemies[i] === undefined) { enemies[i] = en; return; }
             }
         }
-    addEnemy(new boss());
     function getNearEnemy(x,y,radius)
         {
         if (winflag) { return undefined; }
@@ -830,10 +829,21 @@
         if(winner) { winflag = true; }
         if(winflag) { return; }
         curr_wait--;
-        if(curr_wait <= 0)
+        if(curr_wait == 0)
             {
             curr_wait = waittime;
-            addEnemy(new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)));
+            waittime-=50;
+            if(waittime <= 200)
+                {
+                curr_wait=-1;
+                addEnemy(new boss());
+                addEnemy(new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)));
+                addEnemy(new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)));
+                }
+            else
+                {
+                addEnemy(new ship(1+Math.floor(Math.random()*3),Math.floor(Math.random()*field.size)));
+                }
             }
         for(var i = 0; i < enemies.length; i++)
             {
