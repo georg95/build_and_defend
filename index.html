@@ -49,6 +49,7 @@
     var wallcost = 60;
     var scannercost = 50;
     var scannerlvl = 0;
+    var buttonsize = 64;
     var waittime = 700;
     var curr_wait = waittime;
     var gold = 120;
@@ -280,28 +281,28 @@
     var turretbutton = {};
     turretbutton.x = margin;
     turretbutton.y = margin+40;
-    turretbutton.wh_size = 32;
+    turretbutton.wh_size = buttonsize;
     turretbutton.img = turret1;
     turretbutton.click = function() { buildmode = "turret"; }
     turretbutton.cost = function() { return turretcost; }
     var factorybutton = {};
     factorybutton.x = margin;
     factorybutton.y = turretbutton.y+turretbutton.wh_size+5;
-    factorybutton.wh_size = 32;
+    factorybutton.wh_size = buttonsize;
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
     factorybutton.cost = function() { return factorycost; }
     var wallbutton = {};
     wallbutton.x = margin;
     wallbutton.y = factorybutton.y+factorybutton.wh_size+5;
-    wallbutton.wh_size = 32;
+    wallbutton.wh_size = buttonsize;
     wallbutton.img = wallimg;
     wallbutton.click = function() { buildmode = "wall"; }
     wallbutton.cost = function() { return wallcost; }
     var sellbutton = {};
     sellbutton.x = margin;
     sellbutton.y = wallbutton.y+wallbutton.wh_size+5;
-    sellbutton.wh_size = 32;
+    sellbutton.wh_size = buttonsize;
     sellbutton.img = sellimg;
     sellbutton.click = function() { buildmode = "sell"; }
     sellbutton.cost = function() { return undefined; }
@@ -310,7 +311,7 @@
         {
         x: margin,
         y: sellbutton.y+sellbutton.wh_size+5,
-        wh_size: 32,
+        wh_size: buttonsize,
         img: scanner1,
         click: function()
             {
