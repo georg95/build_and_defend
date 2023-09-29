@@ -198,9 +198,11 @@ body
         area.stroke();
         }
     var effectBullet = Object.create(effect);
-    effectBullet.constructor = function(t, sx, sy, fx, fy)
+    effectBullet.constructor = function(t, sx, sy, fx, fy, obj, dmg)
         {
         effect.constructor.apply(this, arguments);
+        this.dmg = dmg;
+        this.obj = obj;
         this.sx = sx;
         this.sy = sy;
         this.fx = fx;
@@ -218,7 +220,12 @@ body
         var y = this.fy-dy*this.time/this.alltime;
         var xx = x+dx/5;
         var yy = y+dy/5;
-        if(this.time/this.alltime <= 1/5) { xx=this.fx; yy=this.fy; }
+        if(this.time/this.alltime <= 1/5)
+            {
+            if(this.dmg != 0) { this.obj.hit(this.dmg); }
+            this.dmg = 0;
+            xx=this.fx; yy=this.fy;
+            }
         area.moveTo(x, y);
         area.lineTo(xx, yy);
         area.lineWidth=2*context.height/720;
@@ -635,8 +642,8 @@ body
             {
             if(this.shootstate == 0)
                 {
-                addEffect(Object.create(effectBullet).constructor(10, this.x, this.y, build.x, build.y));
-                build.hit(30);
+                addEffect(Object.create(effectBullet).constructor(10, this.x, this.y, build.x, build.y, build, 30));
+                //build.hit(30);
                 this.shootstate = 15;
                 }
             }
