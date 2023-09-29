@@ -26,7 +26,7 @@ body
         boom[i]=new Image();
         boom[i].src = "boom1/"+(i+1)+".png";
         }
-    
+    context.style.webkitFilter = "blur(10px)";
     var drill = new Image();
     drill.src = "building229.png";
     var sellimg = new Image();
@@ -54,6 +54,8 @@ body
     
     var background = new Image();
     background.src = "bg.png";
+    var background2 = new Image();
+    background2.src = "bg2.png";
     //var laser = new Audio("laser.ogg");
     var mx = 0;
     var my = 0;
@@ -62,13 +64,14 @@ body
     var field = {};
 
     var buildmode = "factory";
-    var margin = 40;
+    var margin = context.height*40/450;
     var factorycost;
     var turretcost;
     var wallcost;
     var scannercost;
     var scannerlvl;
-    var buttonsize = 64;
+    var button_big_radius = 67*context.height/720;
+    var button_small_radius = 60*context.height/720;
     var waittime;
     var curr_wait;
     var gold;
@@ -187,6 +190,8 @@ body
         area.beginPath();
         area.moveTo(this.sx, this.sy);
         area.lineTo(this.fx, this.fy);
+        area.lineWidth=2*context.height/720;
+        if(area.lineWidth < 1) { area.lineWidth=1; }
         area.stroke();
         }
     var effectBullet = Object.create(effect);
@@ -213,6 +218,8 @@ body
         if(this.time/this.alltime <= 1/5) { xx=this.fx; yy=this.fy; }
         area.moveTo(x, y);
         area.lineTo(xx, yy);
+        area.lineWidth=2*context.height/720;
+        if(area.lineWidth < 1) { area.lineWidth=1; }
         area.stroke();
         }
     var effectBoom = Object.create(effect);
@@ -359,39 +366,34 @@ body
         };
     var actionbuttons = [replaybutton, pausebutton, menubutton];
     var turretbutton = {};
-    turretbutton.x = margin;
-    turretbutton.y = margin+40;
-    turretbutton.wh_size = buttonsize;
+    turretbutton.x = 150*context.width/1280;
+    turretbutton.y = 197*context.height/720;
     turretbutton.img = turret1;
     turretbutton.click = function() { buildmode = "turret"; }
     turretbutton.cost = function() { return turretcost; }
     var factorybutton = {};
-    factorybutton.x = margin;
-    factorybutton.y = turretbutton.y+turretbutton.wh_size+5;
-    factorybutton.wh_size = buttonsize;
+    factorybutton.x = 210*context.width/1280;
+    factorybutton.y = 300*context.height/720;
     factorybutton.img = drill;
     factorybutton.click = function() { buildmode = "factory"; }
     factorybutton.cost = function() { return factorycost; }
     var wallbutton = {};
-    wallbutton.x = margin;
-    wallbutton.y = factorybutton.y+factorybutton.wh_size+5;
-    wallbutton.wh_size = buttonsize;
+    wallbutton.x = 150*context.width/1280;
+    wallbutton.y = 403*context.height/720;
     wallbutton.img = wallimg;
     wallbutton.click = function() { buildmode = "wall"; }
     wallbutton.cost = function() { return wallcost; }
     var sellbutton = {};
-    sellbutton.x = margin;
-    sellbutton.y = wallbutton.y+wallbutton.wh_size+5;
-    sellbutton.wh_size = buttonsize;
+    sellbutton.x = 209*context.width/1280;
+    sellbutton.y = 505*context.height/720;
     sellbutton.img = sellimg;
     sellbutton.click = function() { buildmode = "sell"; }
     sellbutton.cost = function() { return undefined; }
     
     var scannerbutton =
         {
-        x: margin,
-        y: sellbutton.y+sellbutton.wh_size+5,
-        wh_size: buttonsize,
+        x: 150*context.width/1280,
+        y: 607*context.height/720,
         img: scanner1,
         click: function()
             {
@@ -484,7 +486,7 @@ body
         this.attackTime++;
         this.angle+=0.05;
         if(this.angle>2*Math.PI) { this.angle-=2*Math.PI; }
-        var build = getNearBuilding(this.x, this.y, 120);
+        var build = getNearBuilding(this.x, this.y, 220*context.height/450);
         if (build != undefined)
             {
             if(this.shootstate == 0)
@@ -512,14 +514,15 @@ body
         for (var i in this.turrets) { addEnemy(this.turrets[i]); }
         this.buildstate = 500;
         this.isalive = true;
+        this.vx = 0.7*context.height/450
         }
     boss.prototype.act = function()
         {
-        this.x -= 0.5;
+        this.x -= this.vx;
         for (var i in this.turrets)
             {
             if (this.turrets[i] === undefined) { continue; }
-            this.turrets[i].move(-0.5, 0);
+            this.turrets[i].move(-this.vx, 0);
             if(this.turrets[i].isalive == false) { this.turrets[i] = undefined; }
             }
         if(this.x <= 0) { switchlose(); }
@@ -559,13 +562,13 @@ body
         this.act = this.attack;
         this.isalive = true;
         this.shootstate = 0;
-        this.vx = 2+Math.random();
+        this.vx = (2+Math.random())*context.height/450;
         }
     ship.prototype.attack = function()
         {
         this.attackTime++;
         
-        var build = getNearBuilding(this.x, this.y, 80);
+        var build = getNearBuilding(this.x, this.y, 80*context.height/450);
         if (build != undefined)
             {
             if(this.shootstate == 0)
@@ -749,7 +752,7 @@ body
         {
         if(this.angle > Math.PI)  { this.angle-=2*Math.PI; }
         if(this.angle < -Math.PI) { this.angle+=2*Math.PI; }
-        var enemy = getNearEnemy(this.x, this.y, 200)
+        var enemy = getNearEnemy(this.x, this.y, 200*context.height/450)
         if(enemy == undefined) { this.angle+=0.1; return; }
         
         var eangle = Math.atan2(enemy.y-this.y, enemy.x-this.x);
@@ -840,14 +843,14 @@ body
         }
     setdefaults();
 
-    function DrawBg()
+    function DrawBg(bg)
         {
-        drawarea.drawImage(background, 0, 0, context.width, context.height);
+        drawarea.drawImage(bg, 0, 0, context.width, context.height);
         }
 
     field.draw = function (drawarea)
         {
-        drawarea.strokeStyle="black";
+        drawarea.strokeStyle="#666";
 
         var step = this.wh_size/this.size;
         drawarea.beginPath();
@@ -858,6 +861,7 @@ body
             drawarea.moveTo(this.x_left+i*step, this.y_up);
             drawarea.lineTo(this.x_left+i*step, this.y_up+this.wh_size);
             }
+        drawarea.lineWidth=2*context.height/450;
         drawarea.stroke();
         drawarea.strokeRect(this.x_left, this.y_up, this.wh_size, this.wh_size);
         for(var x = 0; x < this.size; x++)
@@ -906,10 +910,10 @@ body
         this.alpha = 1;
         this.animalpha = Math.PI;
         this.ishover = false;
-        this.height = 36;
+        this.height = context.height/12;
         drawarea.font = "bold "+this.height+"px Arial";
         this.width  = drawarea.measureText(text).width;
-        this.centery = context.height/10+this.position*(this.height*1.5);
+        this.centery = context.height/12+this.position*(this.height*1.5);
         }
     menuButton.prototype.update = function()
         {
@@ -949,7 +953,7 @@ body
     var tomenubutton = new menuButton(7, "BACK", function() { ReDraw = MenuDraw; Update=MenuUpdate; });
     function HelpDraw()
         {
-        DrawBg();
+        DrawBg(background);
         
         var helpdesk = [{img:drill,    help:{"en":"Add from $1 to $14 per constant time",
                                             "ru":"Добавляет от $1 до $14 за единицу времени"}}, 
@@ -986,7 +990,7 @@ body
         }
     function AboutDraw()
         {
-        DrawBg();
+        DrawBg(background);
         var textsize = 14;
         drawarea.font = "bold "+textsize+"px Arial";
         drawarea.textAlign = "center";
@@ -1019,7 +1023,7 @@ body
         {
         //drawarea.fillStyle="#334";
         //drawarea.fillRect(0,0, context.width, context.height);
-        DrawBg();
+        DrawBg(background);
         for(var i = 0; i < menubuttons.length; i++)
             {
             menubuttons[i].draw(drawarea);
@@ -1040,28 +1044,29 @@ body
         {
         //drawarea.fillStyle="#334";
         //drawarea.fillRect(0,0, context.width, context.height);
-        DrawBg();
+        DrawBg(background2);
         fscan(drawarea);
         field.draw(drawarea);
         for(var i in actionbuttons) { actionbuttons[i].draw(drawarea); }
-        drawarea.font = "bold 24px courier";
+        drawarea.font = "bold "+24*context.height/450+"px courier";
         drawarea.textAlign = "left";
         drawarea.textBaseline = "top";
         drawarea.fillStyle = "#DD2";
         drawarea.fillText("GOLD: "+Math.floor(gold), margin, margin);
         
-        drawarea.font = "bold 11px Arial";
-        drawarea.textAlign = "right";
-        drawarea.textBaseline = "bottom";
+        drawarea.font = "bold "+11*context.height/450+"px Arial";
+        drawarea.textAlign = "center";
+        drawarea.textBaseline = "middle";
         drawarea.fillStyle = "#DD2";    
         for (var i = 0; i < buttons.length; i++)
             {
-            drawarea.drawImage(buttons[i].img, buttons[i].x, buttons[i].y,
-                               buttons[i].wh_size, buttons[i].wh_size);
+            var wh_size2 = button_small_radius;
+            drawarea.drawImage(buttons[i].img, buttons[i].x-wh_size2, buttons[i].y-wh_size2,
+                               wh_size2*2, wh_size2*2);
             if (buttons[i].cost() != undefined)
             drawarea.fillText("$"+buttons[i].cost(),
-                              buttons[i].x+buttons[i].wh_size,
-                              buttons[i].y+buttons[i].wh_size);
+                              buttons[i].x,
+                              buttons[i].y);
             }
         var bm = 1;
         if (buildmode == "turret")  { bm = 0; }
@@ -1069,8 +1074,18 @@ body
         if (buildmode == "wall")    { bm = 2; }
         if (buildmode == "sell")    { bm = 3; }
         drawarea.strokeStyle="#F00";
-        drawarea.strokeRect(buttons[bm].x, buttons[bm].y,
-                            buttons[bm].wh_size, buttons[bm].wh_size);
+        drawarea.beginPath();
+        var angle = Math.PI/6;
+        drawarea.moveTo(buttons[bm].x+button_big_radius*Math.cos(angle),
+                        buttons[bm].y+button_big_radius*Math.sin(angle));
+        for(var i = 0; i < 6; i++)
+            {
+            angle+=Math.PI/3;
+            drawarea.lineTo(buttons[bm].x+button_big_radius*Math.cos(angle),
+                            buttons[bm].y+button_big_radius*Math.sin(angle));
+            }
+        drawarea.lineWidth = 4*context.height/720;
+        drawarea.stroke();
         
 
         for (var i = 0; i < enemies.length; i++)
@@ -1092,10 +1107,13 @@ body
             {
             for(var i in actionbuttons) { actionbuttons[i].click(mx, my); }
             field.click(mx, my);
+            var dx = 0;
+            var dy = 0;
             for (var i = 0; i < buttons.length; i++)
                 {
-                if(mx > buttons[i].x && mx < buttons[i].x+buttons[i].wh_size &&
-                   my > buttons[i].y && my < buttons[i].y+buttons[i].wh_size) { buttons[i].click(); }
+                dx = mx-buttons[i].x;
+                dy = my-buttons[i].y;
+                if(dx*dx+dy*dy < button_small_radius*button_small_radius) { buttons[i].click(); break; }
                 }
             }
         if(paused) { return; }
